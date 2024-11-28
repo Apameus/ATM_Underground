@@ -20,16 +20,16 @@ public final class CreditCardService {
         return card;
     }
 
-    public void deposit(int cardID, int amount) throws CardNotFoundException {
-//        if (amount < 0);
+    public void deposit(int cardID, int amount) throws CardNotFoundException, InvalidAmountException {
+        if (amount < 0) throw new InvalidAmountException();
 //        else if (amount > 1000) throw new ExtraValidationNeededException();
         Card card = cardRepository.findCardBy(cardID);
         if (card == null) throw new CardNotFoundException();
         cardRepository.updateAmount(cardID,card.amount() + amount);
     }
 
-    public void withdraw(int cardID, int amount) throws CardNotFoundException, NotEnoughMoneyException {
-//        if (amount < 0);
+    public void withdraw(int cardID, int amount) throws CardNotFoundException, NotEnoughMoneyException, InvalidAmountException {
+        if (amount < 0) throw new InvalidAmountException();
 //        else if (amount > 1000) throw new ExtraValidationNeededException();
         Card card = cardRepository.findCardBy(cardID);
         if (card == null) throw new CardNotFoundException();
