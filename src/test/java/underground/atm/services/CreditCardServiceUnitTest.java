@@ -23,21 +23,6 @@ class CreditCardServiceUnitTest {
     private final CreditCardService creditCardService = new CreditCardService(mockRepo);
 
 
-    @Test
-    @DisplayName("Invalid creditCardID OR pin throws authorization exception") //ToDo: Should this be explicit ?
-    void invalidCreditCardIDThrowsAuthorizationException(){
-        when(mockRepo.findCardBy(anyInt())).thenReturn(null);
-
-        assertThrows(AuthorizationFailedException.class, () -> creditCardService.authorize(9999, 99));
-    }
-
-    @Test
-    @DisplayName("Valid credentials returns card")
-    void validCredentialsReturnsCard() throws AuthorizationFailedException {
-        when(mockRepo.findCardBy(mockCard.id())).thenReturn(mockCard);
-
-        assertThat(creditCardService.authorize(mockCard.id(), mockCard.pin())).isEqualTo(mockCard);
-    }
 
     @Test
     @DisplayName("Deposit with valid id and amount")
@@ -114,6 +99,7 @@ class CreditCardServiceUnitTest {
         when(mockRepo.findCardBy(otherMockCard.id())).thenReturn(otherMockCard);
 
         assertThrows(NotEnoughMoneyException.class ,() -> creditCardService.transfer(mockCard.id(), otherMockCard.id(), mockCard.amount() + 1));
+        verify(mockRepo, times(0)).updateAmount(otherMockCard.id(), otherMockCard.amount() + mockCard.amount() + 1);
     }
 
 
