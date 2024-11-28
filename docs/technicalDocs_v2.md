@@ -17,7 +17,7 @@ sequenceDiagram
     U ->> S: authorize(creditID, pin)
     S ->> R: findCardBy(creditID)
     R -->> S: CreditCard
-    alt Account not found OR wrong pin
+    alt CreditCard == null || creditCard.pin != pin
         S -->> U: AuthorizationFailedException
     end
     S -->> U: CreditCard
