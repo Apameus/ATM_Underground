@@ -11,7 +11,7 @@ public final class AuthorizationService {
         this.cardRepository = cardRepository;
     }
 
-    Card authorize(int cardID, int pin) throws AuthorizationFailedException {
+    public Card authorize(int cardID, int pin) throws AuthorizationFailedException {
         Card card = cardRepository.findCardBy(cardID);
         if (card == null || card.pin() != pin) throw new AuthorizationFailedException();
         return card;

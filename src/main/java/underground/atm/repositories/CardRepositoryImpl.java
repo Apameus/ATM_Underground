@@ -26,9 +26,13 @@ public final class CardRepositoryImpl implements CardRepository {
     public void updateAmount(int cardID, int amount) {
         Collection<Card> cards = cardDataSource.load();
         Card card = null;
+        forloop:
         for (Iterator<Card> iterator = cards.iterator(); iterator.hasNext(); ) {
             card = iterator.next();
-            if (card.id() == cardID) iterator.remove();
+            if (card.id() == cardID) {
+                iterator.remove();
+                break forloop;
+            }
         }
         if (card == null) throw new IllegalStateException();
         cards.add(card.withAmount(amount));
