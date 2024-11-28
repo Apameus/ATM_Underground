@@ -1,19 +1,21 @@
 package underground.atm.services;
 
-import underground.atm.data.Card;
+import underground.atm.data.CreditCard;
 import underground.atm.exceptions.AuthorizationFailedException;
-import underground.atm.repositories.CardRepository;
+import underground.atm.repositories.CreditCardRepository;
+
+import java.util.Objects;
 
 public final class AuthorizationService {
-    private final CardRepository cardRepository;
+    private final CreditCardRepository creditCardRepository;
 
-    public AuthorizationService(CardRepository cardRepository) {
-        this.cardRepository = cardRepository;
+    public AuthorizationService(CreditCardRepository creditCardRepository) {
+        this.creditCardRepository = creditCardRepository;
     }
 
-    public Card authorize(int cardID, int pin) throws AuthorizationFailedException {
-        Card card = cardRepository.findCardBy(cardID);
-        if (card == null || card.pin() != pin) throw new AuthorizationFailedException();
-        return card;
+    public CreditCard authorize(int cardID, String pin) throws AuthorizationFailedException {
+        CreditCard creditCard = creditCardRepository.findCardBy(cardID);
+        if (creditCard == null || !Objects.equals(creditCard.pin(), pin)) throw new AuthorizationFailedException();
+        return creditCard;
     }
 }
