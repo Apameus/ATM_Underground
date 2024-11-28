@@ -36,9 +36,6 @@ R -->> S: card
 alt card == null
     S -->> U: InvalidCardIdException
 end
-alt amount <= 0
-    S -->> U: EXC
-end
 S ->> R: updateAmount(cardID, amount)
 %%S -->> U: msg(succeed)
 ```
@@ -56,7 +53,7 @@ R -->>S: card
 alt card == null 
     S -->> U: InvalidCardIdException
 end
-alt amount <= 0 
+alt amount <= amount 
     S -->> U: EXC
 end
 S ->> R: updateAmount(cardID, amount)
