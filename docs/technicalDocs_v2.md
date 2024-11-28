@@ -3,102 +3,107 @@
 ### High Level Architecture
 ```mermaid
 flowchart LR
-UI --> AuthorizationService --> CardRepo
-UI --> CardService --> CardRepo
+    UI --> AuthorizationService --> CardRepo
+    UI --> CardService --> CardRepo
 ```
 
 
 ## Authorization:
 ```mermaid
 sequenceDiagram
-actor U as User
-participant S as AuthService
-participant R as CardRepo
-
-U ->> S: authorize(creditID, pin)
-S ->> R: findCardBy(creditID)
-R -->> S: Card
-alt Account not found OR wrong pin
-    S -->> U: AuthorizationFailedException
-end
+    actor U as User
+    participant S as AuthService
+    participant R as CardRepo
+    U ->> S: authorize(creditID, pin)
+    S ->> R: findCardBy(creditID)
+    R -->> S: CreditCard
+    alt Account not found OR wrong pin
+        S -->> U: AuthorizationFailedException
+    end
+    S -->> U: CreditCard
 ```
 
 ## Deposit:
 ```mermaid
 sequenceDiagram
-actor U as User
-participant S as CardService
-participant R as CardRepo
-
-U ->> S: deposit(cardID, amount)
-S ->> R: findCardBy(cardID)
-R -->> S: card
-alt card == null
-    S -->> U: InvalidCardIdException
-end
-S ->> R: updateAmount(cardID, amount)
+    actor U as User
+    participant S as CardService
+    participant R as CardRepo
+    U ->> S: deposit(amount)
+    alt amount <= 0
+        S -->> U: InvalidAmountException
+    end
+    S ->> R: findCardBy(cardID)
+    R -->> S: creditCard
+    alt creditCard == null
+        S -->> U: InvalidCardIdException
+    end
+    S ->> R: updateAmount(cardID, amount)
 %%S -->> U: msg(succeed)
 ```
 
 ## Withdraw:
 ```mermaid
 sequenceDiagram
-actor U as User
-participant S as CardService
-participant R as CardRepo
-
-U ->> S: withdraw(cardID, amount)
-S ->> R: findCardBy(cardID)
-R -->>S: card
-alt card == null 
-    S -->> U: InvalidCardIdException
-end
-alt amount <= amount 
-    S -->> U: EXC
-end
-S ->> R: updateAmount(cardID, amount)
+    actor U as User
+    participant S as CardService
+    participant R as CardRepo
+    U ->> S: withdraw(amount)
+    alt amount <= 0
+        S -->> U: InvalidAmountException
+    end
+    S ->> R: findCardBy(cardID)
+    R -->> S: creditCard
+    alt creditCard == null
+        S -->> U: IllegalStateException
+    end
+    alt amount <= amount
+        S -->> U: NotEnoughMoneyException
+    end
+    S ->> R: updateAmount(cardID, amount)
 ```
 
 ## Balance:
 ```mermaid
 sequenceDiagram
-actor U as User
-participant S as CardService
-%%participant R as CardRepo
-
-U ->> S: viewBalance(cardID)
-S ->> R: findCardBy(cardID)
-R -->>S: card
-alt card == null
-        S -->>U: InvalidCardIdException
-end
-S ->> U: balance
+    actor U as User
+    participant S as CardService
+    participant R as CardRepo
+    U ->> S: viewBalance()
+    S ->> R: findCardBy(cardID)
+    R -->> S: creditCard
+    alt creditCard == null
+        S -->> U: IllegalStateException
+    end
+    S ->> U: balance
 ```
 
 ## Transfer
 ```mermaid
 sequenceDiagram
-actor U as User
-participant S as CardService
-participant R as CardRepo
-
-U ->> S: transfer(cardID, otherCardID, amount)
-alt amount < 0
+    actor U as User
+    participant S as CardService
+    participant R as CardRepo
+    U ->> S: transfer(cardID, otherCardID, amount)
+    alt amount <= 0
         S -->> U: InvalidAmountException
-end
-S ->> R: findCardByID(cardID)
-R -->> S: thisCard
-S ->> R: findCardByID(otherCardID) 
-R -->> S: otherCard
+    end
+    S ->> R: findCardByID(cardID)
+    R -->> S: thisCard
+    alt thisCard == null
+        S ->> U: IllegalStateException
+    end
+    S ->> R: findCardByID(otherCardID)
+    R -->> S: otherCard
 
-alt thisCard == null || otherCard == null
-    S ->> U: InvalidCredentialsException
-end
-alt card.balance < amount
-    S ->> U: NotEnoughMoneyException
-end
+    alt otherCard == null 
+       S -->> U: CreditCardNotFoundExc 
+    end
+    alt creditCard.balance < amount
+        S ->> U: NotEnoughMoneyException
+    end
 
 %%S ->> R: transfer(cardID, otherCardID, amount)
-S ->> R: updateAmount(thisCard, amount)
-S ->> R: updateAmount(otherCard, amount)
+    S ->> R: updateAmount(thisCard, amount)
+    S ->> R: updateAmount(otherCard, amount)
 ```
