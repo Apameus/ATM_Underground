@@ -1,13 +1,9 @@
 package underground.atm.server;
-
-import underground.atm.data.CreditCard;
-
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.util.HashMap;
 
 public final class TCPServer {
     private final ServerSocket serverSocket;
