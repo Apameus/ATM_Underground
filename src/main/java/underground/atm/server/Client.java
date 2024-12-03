@@ -13,8 +13,8 @@ public final class Client {
         socket.connect(new InetSocketAddress(8080));
         OutputStream outputStream = socket.getOutputStream();
 
-//        byte[] cardID = Integer.toBinaryString(2004).getBytes(); // ??
-        byte type = 1;
+        // Generate msg to bytes am se gamisw tha sot pw egw
+        byte type = 2;
         byte[] cardId = "2004".getBytes();
         byte[] amount = "100".getBytes();
 
