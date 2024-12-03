@@ -16,7 +16,9 @@ public final class TCPServer {
     public TCPServer(SocketAddress address,  ServerSocket serverSocket, CreditCardController creditCardController) throws IOException {
         this.serverSocket = serverSocket;
         serverSocket.bind(address);
+
         this.creditCardController = creditCardController;
+
         requestCodec = new RequestCodec();
         responseCodec = new ResponseCodec();
     }
@@ -27,7 +29,6 @@ public final class TCPServer {
 
             DataInputStream inputStream = new DataInputStream(new BufferedInputStream(client.getInputStream()));
             DataOutputStream outputStream = new DataOutputStream(new BufferedOutputStream(client.getOutputStream()));
-
 
             Request request = requestCodec.decode(inputStream);
             Response response = creditCardController.handleRequest(request);
@@ -42,7 +43,7 @@ public final class TCPServer {
 
 
 
-    // v1
+    // Lower Level:
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket();
         serverSocket.bind(new InetSocketAddress(8080));
@@ -92,4 +93,6 @@ public final class TCPServer {
         String strAmount = new String(amount);
         System.out.println("The creditCard with id: " + strCardID + " wants to withdraw the amount of: " + strAmount + "$");
     }
+
+
 }

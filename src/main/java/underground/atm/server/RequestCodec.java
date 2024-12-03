@@ -1,6 +1,7 @@
 package underground.atm.server;
 
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 
 public final class RequestCodec {
@@ -20,12 +21,14 @@ public final class RequestCodec {
         };
     }
 
-//    public Response encode(Request request) {
-//        return switch (request){
-//            case Request.FindCreditCardRequest -> {
-//
-//            }
-//            case Request.UpdateAmountRequest -> {}
-//        }
-//    }
+    public void encode(DataOutputStream outputStream, Request request) throws IOException {
+        switch (request) {
+            case Request.FindCreditCardRequest(int id) -> outputStream.writeInt(id);
+            case Request.UpdateAmountRequest(int id, int amount) -> {
+                outputStream.writeInt(id);
+                outputStream.writeInt(amount);
+            }
+        }
+    }
+
 }

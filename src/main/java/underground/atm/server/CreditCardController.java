@@ -15,9 +15,9 @@ public class CreditCardController {
         return switch (request){
             case Request.FindCreditCardRequest(int id) -> {
                 CreditCard creditCard = serverCreditCardService.findCreditCardBy(id);
-                yield new Response.FindCreditCardResponse();
+                yield new Response.FindCreditCardResponse(creditCard);
             }
-            case Request.UpdateAmountRequest(int id, int amount) -> {
+            case Request.UpdateAmountRequest(int id, int amount) -> { //todo
                 yield new Response.UpdateAmountResponse();
             }
         };
