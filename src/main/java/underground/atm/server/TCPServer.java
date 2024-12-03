@@ -8,18 +8,29 @@ import java.net.SocketAddress;
 public final class TCPServer {
     private final ServerSocket serverSocket;
     private final CreditCardController creditCardController;
+    private final RequestCodec requestCodec;
 
-    public TCPServer(SocketAddress address, CreditCardController creditCardController, ServerSocket serverSocket, CreditCardController controller1) throws IOException {
+    public TCPServer(SocketAddress address,  ServerSocket serverSocket, CreditCardController creditCardController) throws IOException {
         this.serverSocket = serverSocket;
         serverSocket.bind(address);
         this.creditCardController = creditCardController;
+        requestCodec = new RequestCodec();
     }
 
     public void run() throws IOException {
         while (true){
             Socket client = serverSocket.accept();
 
-            creditCardController.handleClient(client.getInputStream(),client.getOutputStream());
+            DataInputStream inputStream = new DataInputStream(new BufferedInputStream(client.getInputStream()));
+            DataOutputStream outStream = new DataOutputStream(new BufferedOutputStream(client.getOutputStream()));
+
+
+            Request request = requestCodec.decode(inputStream);
+            Response response = creditCardController.handleRequest(request);
+            // send response
+
+
+//            creditCardController.handleClient(client.getInputStream(),client.getOutputStream());
 
             serverSocket.close();
         }
