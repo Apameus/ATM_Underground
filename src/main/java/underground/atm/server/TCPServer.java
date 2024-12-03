@@ -1,4 +1,6 @@
 package underground.atm.server;
+import underground.atm.data.CreditCard;
+
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -9,12 +11,14 @@ public final class TCPServer {
     private final ServerSocket serverSocket;
     private final CreditCardController creditCardController;
     private final RequestCodec requestCodec;
+    private final ResponseCodec responseCodec;
 
     public TCPServer(SocketAddress address,  ServerSocket serverSocket, CreditCardController creditCardController) throws IOException {
         this.serverSocket = serverSocket;
         serverSocket.bind(address);
         this.creditCardController = creditCardController;
         requestCodec = new RequestCodec();
+        responseCodec = new ResponseCodec();
     }
 
     public void run() throws IOException {
@@ -22,23 +26,19 @@ public final class TCPServer {
             Socket client = serverSocket.accept();
 
             DataInputStream inputStream = new DataInputStream(new BufferedInputStream(client.getInputStream()));
-            DataOutputStream outStream = new DataOutputStream(new BufferedOutputStream(client.getOutputStream()));
+            DataOutputStream outputStream = new DataOutputStream(new BufferedOutputStream(client.getOutputStream()));
 
 
             Request request = requestCodec.decode(inputStream);
             Response response = creditCardController.handleRequest(request);
-            // send response
 
-
-//            creditCardController.handleClient(client.getInputStream(),client.getOutputStream());
+            responseCodec.encode(outputStream, response);
+            outputStream.flush();
 
             serverSocket.close();
         }
 
     }
-
-
-
 
 
 
