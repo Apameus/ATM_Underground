@@ -17,10 +17,15 @@ public class ResponseCodec {
             case Response.UpdateAmountResponse() -> {
 
             }
+            case Response.ErrorResponse errorResponse -> {
+            }
         }
     }
 
-//    public Response decode(DataInputStream inputStream){
-//
-//    }
+    public Response decode(DataInputStream inputStream) throws IOException {
+        byte type = inputStream.readByte();
+        return switch (type){
+            case
+        }
+    }
 }

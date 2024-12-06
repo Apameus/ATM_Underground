@@ -25,20 +25,27 @@ public final class TCPServer {
 
     public void run() throws IOException {
         while (true){
-            Socket client = serverSocket.accept();
 
-            DataInputStream inputStream = new DataInputStream(new BufferedInputStream(client.getInputStream()));
-            DataOutputStream outputStream = new DataOutputStream(new BufferedOutputStream(client.getOutputStream()));
+            try (var client = serverSocket.accept();
+                 DataInputStream inputStream = new DataInputStream(new BufferedInputStream(client.getInputStream()));
+                 DataOutputStream outputStream = new DataOutputStream(new BufferedOutputStream(client.getOutputStream()));
+            ){
+                Request request = requestCodec.decode(inputStream);
+                Response response;
+                try {
+                    response = creditCardController.handleRequest(request);
+                } catch (Exception e){
+                    response = new Response.ErrorResponse(90); // Unspecified exception
+                }
 
-            Request request = requestCodec.decode(inputStream);
-            Response response = creditCardController.handleRequest(request);
+                responseCodec.encode(outputStream, response);
+                outputStream.flush();
+            }
+//            finally {
+//                serverSocket.close();
+//            }
 
-            responseCodec.encode(outputStream, response);
-            outputStream.flush();
-
-            serverSocket.close();
         }
-
     }
 
 

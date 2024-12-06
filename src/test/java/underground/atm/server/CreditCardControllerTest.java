@@ -4,10 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import underground.atm.data.CreditCard;
-
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
+import underground.atm.services.CreditCardService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -15,7 +12,7 @@ import static org.mockito.Mockito.when;
 
 class CreditCardControllerTest {
 
-    final ServerCreditCardService serverCreditCardService = Mockito.mock(ServerCreditCardService.class);
+    final CreditCardService serverCreditCardService = Mockito.mock(CreditCardService.class);
     final CreditCardController creditCardController = new CreditCardController(serverCreditCardService);
 
 

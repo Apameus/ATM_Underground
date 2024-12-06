@@ -5,13 +5,13 @@ import underground.atm.data.CreditCard;
 import java.util.Collection;
 import java.util.Iterator;
 
-public final class CreditCardRepositoryImpl implements CreditCardRepository {
+public final class Server_CreditCardRepositoryImpl implements Server_CreditCardRepository {
     // Instead of cache we will take the data straight from the source
     // ( parse & serialize file in every transaction
 
     private final CreditCardDataSource creditCardDataSource;
 
-    public CreditCardRepositoryImpl(CreditCardDataSource creditCardDataSource) {
+    public Server_CreditCardRepositoryImpl(CreditCardDataSource creditCardDataSource) {
         this.creditCardDataSource = creditCardDataSource;
     }
 

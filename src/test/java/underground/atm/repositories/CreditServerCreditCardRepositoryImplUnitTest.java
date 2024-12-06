@@ -11,10 +11,10 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-class CreditCreditCardRepositoryImplUnitTest {
+class CreditServerCreditCardRepositoryImplUnitTest {
     private final CreditCardDataSource mockDataSource = Mockito.mock(CreditCardDataSource.class);
     private final CreditCard creditCard = new CreditCard(1111,"11",100);
-    private final CreditCardRepositoryImpl cardRepo = new CreditCardRepositoryImpl(mockDataSource);
+    private final Server_CreditCardRepositoryImpl cardRepo = new Server_CreditCardRepositoryImpl(mockDataSource);
 
     @Test
     @DisplayName("Find card by valid ID")

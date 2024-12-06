@@ -7,7 +7,7 @@ import underground.atm.data.CreditCard;
 import underground.atm.exceptions.CreditCardNotFoundException;
 import underground.atm.exceptions.InvalidAmountException;
 import underground.atm.exceptions.NotEnoughMoneyException;
-import underground.atm.repositories.CreditCardRepository;
+import underground.atm.repositories.Server_CreditCardRepository;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -17,9 +17,9 @@ import static org.mockito.Mockito.*;
 
 class CreditCreditCardServiceUnitTest {
 
-    private final CreditCardRepository creditCardRepository = Mockito.mock(CreditCardRepository.class);
+    private final Server_CreditCardRepository creditCardRepository = Mockito.mock(Server_CreditCardRepository.class);
     private final CreditCard creditCard = new CreditCard(1111, "11", 100);
-    private final CreditCardService creditCardService = new CreditCardService(creditCardRepository);
+    private final Server_CreditCardService creditCardService = new Server_CreditCardService(creditCardRepository);
 
 
     @Test

@@ -23,8 +23,12 @@ public final class RequestCodec {
 
     public void encode(DataOutputStream outputStream, Request request) throws IOException {
         switch (request) {
-            case Request.FindCreditCardRequest(int id) -> outputStream.writeInt(id);
+            case Request.FindCreditCardRequest(int id) -> {
+                outputStream.write(Request.FindCreditCardRequest.TYPE);
+                outputStream.writeInt(id);
+            }
             case Request.UpdateAmountRequest(int id, int amount) -> {
+                outputStream.write(Request.UpdateAmountRequest.TYPE);
                 outputStream.writeInt(id);
                 outputStream.writeInt(amount);
             }

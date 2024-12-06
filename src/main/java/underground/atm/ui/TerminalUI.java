@@ -5,18 +5,18 @@ import underground.atm.exceptions.AuthorizationFailedException;
 import underground.atm.exceptions.CreditCardNotFoundException;
 import underground.atm.exceptions.InvalidAmountException;
 import underground.atm.exceptions.NotEnoughMoneyException;
-import underground.atm.services.AuthorizationService;
-import underground.atm.services.CreditCardService;
+import underground.atm.services.Server_AuthorizationService;
+import underground.atm.services.Server_CreditCardService;
 
 import java.io.Console;
 
 public final class TerminalUI {
     private final Console console = System.console();
-    private final AuthorizationService authorizationService;
-    private final CreditCardService creditCardService;
+    private final Server_AuthorizationService authorizationService;
+    private final Server_CreditCardService creditCardService;
 
-    public TerminalUI(AuthorizationService authorizationService, CreditCardService creditCardService) {
-        this.authorizationService = authorizationService;
+    public TerminalUI(Server_AuthorizationService serverAuthorizationService, Server_CreditCardService creditCardService) {
+        this.authorizationService = serverAuthorizationService;
         this.creditCardService = creditCardService;
     }
 
