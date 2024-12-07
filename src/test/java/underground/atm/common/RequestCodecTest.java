@@ -11,8 +11,7 @@ import java.io.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class RequestCodecTest { //TODO
-
-    Server_CreditCardService serverCreditCardService = Mockito.mock(Server_CreditCardService.class);
+//    Server_CreditCardService serverCreditCardService = Mockito.mock(Server_CreditCardService.class);
     RequestCodec requestCodec = new RequestCodec();
 
     // ENCODE
