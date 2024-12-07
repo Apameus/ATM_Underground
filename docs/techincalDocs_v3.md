@@ -1,6 +1,6 @@
 - Client
 
-```mermaid 
+```mermaid
 flowchart LR
     UI --> CS[CardService] --> CR[CardRepo] --> P[Protocol] --> S[TCP Server]
 
@@ -16,11 +16,23 @@ flowchart LR
 ## Packages:
 
 ```
-- FindCreditCardRequest(ID)
+- AuthorizeRequest(ID, Pin)
+- DepositRequest(ID, Amount)
+- WithdrawRequest(ID, Amount)
+- TransferRequest(fromID, toID, Amount)
+- ViewBalanceRequest(ID)
 
-- FindCreditCardResponse(CreditCard)
+//
+- AuthorizeResponse()
+- DepositResponse()
+- WithdrawResponse()
+- TransferResponse()
+- ViewBalanceResponse(int Amount)
 
-- UpdateAmountRequest(ID, Amount)
+- ErrorResponse(int ExceptionType)
+     |       AuthorizationFailedExc (91),
+     InvalidAmountExc (92), CreditCardNotFoundExc (93),
+     NotEnoughMoneyExc (94), IllegalStateExc (95)     |
 ```
 
 ```
@@ -33,8 +45,5 @@ FindCreditCardResponse
 UpdateAmountRequest
 Type = 2 | ID, Amount
 
-* CreditCard = ID | PIN | Amount |
-* ID = ID.length (4b) | ID (4b)
-* PIN = PIN.length (4b) | PIN (4b)
-* Amount =  Amount.length (4b) | Amount (4b)
+* CreditCard = ID(4b) | PIN(4b) | Amount(4b) |
 ```

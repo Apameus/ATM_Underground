@@ -1,12 +1,12 @@
 package underground.atm.ui;
+import underground.atm.client.services.AuthorizationService;
+import underground.atm.client.services.CreditCardService;
+import underground.atm.common.exceptions.exceptions.AuthorizationFailedException;
+import underground.atm.common.exceptions.exceptions.CreditCardNotFoundException;
+import underground.atm.common.exceptions.exceptions.InvalidAmountException;
+import underground.atm.common.exceptions.exceptions.NotEnoughMoneyException;
 
-import underground.atm.data.CreditCard;
-import underground.atm.exceptions.AuthorizationFailedException;
-import underground.atm.exceptions.CreditCardNotFoundException;
-import underground.atm.exceptions.InvalidAmountException;
-import underground.atm.exceptions.NotEnoughMoneyException;
-import underground.atm.services.AuthorizationService;
-import underground.atm.services.CreditCardService;
+
 
 import java.io.Console;
 
@@ -28,18 +28,19 @@ public final class TerminalUI {
             if (inputID.equals("EXIT")) break;
 
             // AUTHORIZATION
-            CreditCard authorizedCreditCard = authorization(inputID, inputPin);
-            if (authorizedCreditCard == null) continue;
+//            CreditCard authorizedCreditCard = authorization(inputID, inputPin);
+            if (!authorization(inputID, inputPin)) continue;
+            int authorizedCreditCardID = Integer.parseInt(inputID);
 
             // SECONDARY INPUT
             label:
             while (true){
                 String inputOption = console.readLine("Select option from above" + "%n" + "Deposit, Withdraw, Transfer, Balance: " + "%n");
                 switch (inputOption.toLowerCase()){
-                    case "deposit" -> deposit(authorizedCreditCard);
-                    case "withdraw" -> withdraw(authorizedCreditCard);
-                    case "transfer" -> transfer(authorizedCreditCard);
-                    case "balance" -> balance(authorizedCreditCard);
+                    case "deposit" -> deposit(authorizedCreditCardID);
+                    case "withdraw" -> withdraw(authorizedCreditCardID);
+                    case "transfer" -> transfer(authorizedCreditCardID);
+                    case "balance" -> balance(authorizedCreditCardID);
                     case "exit" -> {break label;}
                 }
 
@@ -47,22 +48,21 @@ public final class TerminalUI {
         }
     }
 
-    private CreditCard authorization(String inputID, String inputPin) {
-        CreditCard authorizedCreditCard;
+    private boolean authorization(String inputID, String inputPin) {
         try {
-            authorizedCreditCard = authorizationService.authorize(Integer.parseInt(inputID), inputPin);
+            authorizationService.authorize(Integer.parseInt(inputID), inputPin);
         } catch (AuthorizationFailedException e) {
             console.printf("Authorization Failed !" + "%n" + "Try Again!" + "%n");
-            return null;
+            return false;
         }
-        return authorizedCreditCard;
+        return true;
     }
 
 
-    private void deposit(CreditCard authorizedCreditCard) {
+    private void deposit(int authorizedCreditCardID) {
         String inputAmount = console.readLine("Amount: ");
         try {
-            creditCardService.deposit(authorizedCreditCard.id(), Integer.parseInt(inputAmount));
+            creditCardService.deposit(authorizedCreditCardID, Integer.parseInt(inputAmount));
         } catch (CreditCardNotFoundException e) {
             throw new IllegalStateException(e);
         } catch (InvalidAmountException e) {
@@ -70,10 +70,10 @@ public final class TerminalUI {
         }
     }
 
-    private void withdraw(CreditCard authorizedCreditCard) {
+    private void withdraw(int authorizedCreditCardID) {
         String inputAmount = console.readLine("Amount: ");
         try {
-            creditCardService.withdraw(authorizedCreditCard.id(), Integer.parseInt(inputAmount));
+            creditCardService.withdraw(authorizedCreditCardID, Integer.parseInt(inputAmount));
         } catch (CreditCardNotFoundException e) {
             throw new IllegalStateException(e);
         } catch (NotEnoughMoneyException e) {
@@ -83,11 +83,11 @@ public final class TerminalUI {
         }
     }
 
-    private void transfer(CreditCard authorizedCreditCard) {
+    private void transfer(int authorizedCreditCardID) {
         String inputOtherCardID = console.readLine("To Card ID: ");
         String inputAmount = console.readLine("Amount: ");
         try {
-            creditCardService.transfer(authorizedCreditCard.id(), Integer.parseInt(inputOtherCardID), Integer.parseInt(inputAmount));
+            creditCardService.transfer(authorizedCreditCardID, Integer.parseInt(inputOtherCardID), Integer.parseInt(inputAmount));
         } catch (InvalidAmountException e) {
             console.printf("Invalid amount!" + "%n");
         } catch (CreditCardNotFoundException e) {
@@ -97,9 +97,9 @@ public final class TerminalUI {
         }
     }
 
-    private void balance(CreditCard authorizedCreditCard) {
+    private void balance(int authorizedCreditCardID) {
         try {
-            console.printf(creditCardService.viewBalance(authorizedCreditCard.id()) + "%n");
+            console.printf(creditCardService.viewBalance(authorizedCreditCardID) + "%n");
         } catch (CreditCardNotFoundException e) {
             throw new IllegalStateException(e);
         }

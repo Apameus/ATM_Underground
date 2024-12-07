@@ -1,26 +1,57 @@
 package underground.atm.server;
 
-import underground.atm.data.CreditCard;
+import underground.atm.common.Request;
+import underground.atm.common.Response;
+import underground.atm.common.exceptions.exceptions.AuthorizationFailedException;
+import underground.atm.common.exceptions.exceptions.CreditCardNotFoundException;
+import underground.atm.common.exceptions.exceptions.InvalidAmountException;
+import underground.atm.common.exceptions.exceptions.NotEnoughMoneyException;
+import underground.atm.server.services.Server_AuthorizationService;
+import underground.atm.server.services.Server_CreditCardService;
 
-import java.io.*;
 
 public class CreditCardController {
-    private final ServerCreditCardService serverCreditCardService;
+    private final Server_CreditCardService serverCreditCardService;
+    private final Server_AuthorizationService authorizationService;
 
-    public CreditCardController(ServerCreditCardService serverCreditCardService) {
+    public CreditCardController(Server_CreditCardService serverCreditCardService, Server_AuthorizationService authorizationService) {
         this.serverCreditCardService = serverCreditCardService;
+        this.authorizationService = authorizationService;
     }
 
     public Response handleRequest(Request request){
-        return switch (request){
-            case Request.FindCreditCardRequest(int id) -> {
-                CreditCard creditCard = serverCreditCardService.findCreditCardBy(id);
-                yield new Response.FindCreditCardResponse();
-            }
-            case Request.UpdateAmountRequest(int id, int amount) -> {
-                yield new Response.UpdateAmountResponse();
-            }
-        };
+        try {
+            return switch (request){
+                case Request.AuthorizeRequest(int id, String pin) -> {
+                    authorizationService.authorize(id, pin);
+                    yield new Response.AuthorizeResponse();
+                }
+                case Request.DepositRequest(int id, int amount) -> {
+                    serverCreditCardService.deposit(id,amount);
+                    yield new Response.DepositResponse();
+                }
+                case Request.WithdrawRequest(int id, int amount) -> {
+                    serverCreditCardService.withdraw(id,amount);
+                    yield new Response.WithdrawResponse();
+                }
+                case Request.TransferRequest(int fromId, int toId, int amount) -> {
+                    serverCreditCardService.transfer(fromId, toId, amount);
+                    yield new Response.TransferResponse();
+                }
+                case Request.ViewBalanceRequest(int id) -> {
+                    int balance = serverCreditCardService.viewBalance(id);
+                    yield new Response.ViewBalanceResponse(balance);
+                }
+            };
+        } catch (AuthorizationFailedException _) {
+            return new Response.ErrorResponse(91);
+        } catch (InvalidAmountException _) {
+            return new Response.ErrorResponse(92);
+        } catch (CreditCardNotFoundException _) {
+            return new Response.ErrorResponse(93);
+        } catch (NotEnoughMoneyException _) {
+            return new Response.ErrorResponse(94);
+        }
     }
 
 

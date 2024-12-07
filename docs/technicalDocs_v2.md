@@ -16,8 +16,8 @@ sequenceDiagram
     participant R as CardRepo
     U ->> S: authorize(creditID, pin)
     S ->> R: findCardBy(creditID)
-    R -->> S: CreditCard
-    alt CreditCard == null || creditCard.pin != pin
+    R -->> S: creditCard
+    alt creditCard == null || creditCard.pin != pin
         S -->> U: AuthorizationFailedException
     end
     S -->> U: CreditCard
