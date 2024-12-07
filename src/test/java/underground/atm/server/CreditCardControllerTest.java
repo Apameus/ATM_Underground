@@ -83,7 +83,7 @@ class CreditCardControllerTest {
     void handleWithdrawRequestWithValidCredentials() {
         var withdrawRequest = new Request.WithdrawRequest(2004, 100);
         Response response = creditCardController.handleRequest(withdrawRequest);
-        assertThat(response).isEqualTo(new Response.WithDrawResponse());
+        assertThat(response).isEqualTo(new Response.WithdrawResponse());
     }
 
     @Test

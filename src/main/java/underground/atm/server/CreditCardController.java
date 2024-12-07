@@ -1,11 +1,13 @@
 package underground.atm.server;
 
-import underground.atm.exceptions.AuthorizationFailedException;
-import underground.atm.exceptions.CreditCardNotFoundException;
-import underground.atm.exceptions.InvalidAmountException;
-import underground.atm.exceptions.NotEnoughMoneyException;
-import underground.atm.services.Server_AuthorizationService;
-import underground.atm.services.Server_CreditCardService;
+import underground.atm.common.Request;
+import underground.atm.common.Response;
+import underground.atm.common.exceptions.exceptions.AuthorizationFailedException;
+import underground.atm.common.exceptions.exceptions.CreditCardNotFoundException;
+import underground.atm.common.exceptions.exceptions.InvalidAmountException;
+import underground.atm.common.exceptions.exceptions.NotEnoughMoneyException;
+import underground.atm.server.services.Server_AuthorizationService;
+import underground.atm.server.services.Server_CreditCardService;
 
 
 public class CreditCardController {
@@ -30,24 +32,24 @@ public class CreditCardController {
                 }
                 case Request.WithdrawRequest(int id, int amount) -> {
                     serverCreditCardService.withdraw(id,amount);
-                    yield new Response.WithDrawResponse();
+                    yield new Response.WithdrawResponse();
                 }
                 case Request.TransferRequest(int fromId, int toId, int amount) -> {
                     serverCreditCardService.transfer(fromId, toId, amount);
                     yield new Response.TransferResponse();
                 }
                 case Request.ViewBalanceRequest(int id) -> {
-                    serverCreditCardService.viewBalance(id);
-                    yield new Response.TransferResponse();
+                    int balance = serverCreditCardService.viewBalance(id);
+                    yield new Response.ViewBalanceResponse(balance);
                 }
             };
-        } catch (AuthorizationFailedException e) {
+        } catch (AuthorizationFailedException _) {
             return new Response.ErrorResponse(91);
         } catch (InvalidAmountException _) {
             return new Response.ErrorResponse(92);
         } catch (CreditCardNotFoundException _) {
             return new Response.ErrorResponse(93);
-        } catch (NotEnoughMoneyException e) {
+        } catch (NotEnoughMoneyException _) {
             return new Response.ErrorResponse(94);
         }
     }

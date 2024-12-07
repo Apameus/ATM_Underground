@@ -1,6 +1,7 @@
 package underground.atm.common;
 
 import underground.atm.common.Request.*;
+import underground.atm.server.CodecUtils;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -30,9 +31,12 @@ public final class RequestCodec {
                 int toId = inputStream.readInt();
                 int amount = inputStream.readInt();
                 yield new TransferRequest(fromId, toId, amount);
-
             }
-            default -> throw new IOException("Unknown Request");
+            case ViewBalanceRequest.TYPE -> {
+                int id = inputStream.readInt();
+                yield new ViewBalanceRequest(id);
+            }
+            default -> throw new IllegalStateException("Unknown Request");
         };
     }
 
