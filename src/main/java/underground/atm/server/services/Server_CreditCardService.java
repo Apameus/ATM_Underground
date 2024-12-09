@@ -4,20 +4,24 @@ import underground.atm.common.data.CreditCard;
 import underground.atm.common.exceptions.exceptions.CreditCardNotFoundException;
 import underground.atm.common.exceptions.exceptions.InvalidAmountException;
 import underground.atm.common.exceptions.exceptions.NotEnoughMoneyException;
+import underground.atm.common.logger.Logger;
 import underground.atm.server.repositories.Server_CreditCardRepository;
 
 public class Server_CreditCardService {
     private final Server_CreditCardRepository serverCreditCardRepository;
+    private final Logger logger;
 
-    public Server_CreditCardService(Server_CreditCardRepository serverCreditCardRepository) {
+    public Server_CreditCardService(Server_CreditCardRepository serverCreditCardRepository, Logger.Factory logFactory) {
         this.serverCreditCardRepository = serverCreditCardRepository;
+        this.logger = logFactory.create("Server_CreditCardService");
     }
 
     public void deposit(int cardID, int amount) throws CreditCardNotFoundException, InvalidAmountException {
         if (amount <= 0) throw new InvalidAmountException();
 //        else if (amount > 1000) throw new ExtraValidationNeededException();
         CreditCard creditCard = serverCreditCardRepository.findCardBy(cardID);
-        if (creditCard == null) throw new IllegalStateException();//TODO: Should this be CreditCardNotFoundExc ?
+        if (creditCard == null) throw new IllegalStateException();
+        logger.log("Depositing the amount of %s for creditID: %s", amount, cardID);
         serverCreditCardRepository.updateAmount(cardID, creditCard.amount() + amount);
     }
 
@@ -25,14 +29,16 @@ public class Server_CreditCardService {
         if (amount <= 0) throw new InvalidAmountException();
 //        else if (amount > 1000) throw new ExtraValidationNeededException();
         CreditCard creditCard = serverCreditCardRepository.findCardBy(cardID);
-        if (creditCard == null) throw new IllegalStateException(); //TODO: Should this be CreditCardNotFoundExc ?
+        if (creditCard == null) throw new IllegalStateException();
         if (creditCard.amount() < amount) throw new NotEnoughMoneyException();
+        logger.log("Withdrawing the amount of %s for creditID: %s", amount, cardID);
         serverCreditCardRepository.updateAmount(cardID, creditCard.amount() - amount);
     }
 
     public int viewBalance(int cardID) throws CreditCardNotFoundException {
         CreditCard creditCard = serverCreditCardRepository.findCardBy(cardID);
         if (creditCard == null) throw new IllegalStateException();
+        logger.log("Viewing the balance (%s) for creditID: %s", creditCard.amount(), cardID);
         return creditCard.amount();
     }
 
@@ -41,10 +47,12 @@ public class Server_CreditCardService {
         if (amount <= 0) throw new InvalidAmountException();
         CreditCard fromCreditCard = serverCreditCardRepository.findCardBy(fromID);
         CreditCard toCreditCard = serverCreditCardRepository.findCardBy(toID);
-        if (fromCreditCard == null) throw new IllegalStateException(); //TODO ..?
+        if (fromCreditCard == null) throw new IllegalStateException();
         if (toCreditCard == null) throw new CreditCardNotFoundException();
         if (fromID == toID) ; //TODO..
         if (fromCreditCard.amount() < amount) throw new NotEnoughMoneyException();
+
+        logger.log("Transferring the amount of %s from creditID: %s, to creditID: %s", amount, fromID, toID);
 
         serverCreditCardRepository.updateAmount(fromID, fromCreditCard.amount() - amount);
         serverCreditCardRepository.updateAmount(toID, toCreditCard.amount() + amount);

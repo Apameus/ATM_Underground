@@ -4,18 +4,21 @@ import underground.atm.common.Request;
 import underground.atm.common.RequestCodec;
 import underground.atm.common.Response;
 import underground.atm.common.ResponseCodec;
+import underground.atm.common.logger.Logger;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.SocketAddress;
 
 public final class TCPServer {
+
     private final ServerSocket serverSocket;
     private final CreditCardController creditCardController;
     private final RequestCodec requestCodec;
     private final ResponseCodec responseCodec;
+    private final Logger logger;
 
-    public TCPServer(SocketAddress address, CreditCardController creditCardController) throws IOException {
+    public TCPServer(SocketAddress address, CreditCardController creditCardController, Logger.Factory logFactory) throws IOException {
         this.serverSocket = new ServerSocket();
         serverSocket.bind(address);
 
@@ -23,23 +26,22 @@ public final class TCPServer {
 
         requestCodec = new RequestCodec();
         responseCodec = new ResponseCodec();
+        this.logger = logFactory.create("TCPServer");
     }
 
     public void run() throws IOException {
         while (true){
-
-            System.out.printf("Server running in %s:%s %n", serverSocket.getInetAddress(), serverSocket.getLocalPort());
 
             try (var client = serverSocket.accept();
                  DataInputStream inputStream = new DataInputStream(new BufferedInputStream(client.getInputStream()));
                  DataOutputStream outputStream = new DataOutputStream(new BufferedOutputStream(client.getOutputStream()));
             ){
 
-                System.out.printf("Connection established from: %s%n", client.getRemoteSocketAddress());
+                logger.log("Connection established from %s", client.getRemoteSocketAddress());
 
                 Request request = requestCodec.decode(inputStream);
 
-                System.out.printf("Got request: %s%n", request);
+                logger.log("Got request %s", request);
 
                 Response response;
                 try {
@@ -48,7 +50,8 @@ public final class TCPServer {
                     response = new Response.ErrorResponse(90); // Unspecified exception
                 }
 
-                System.out.printf("Sending response: %s%n", response);
+                logger.log("Sending response: %s", response);
+
                 responseCodec.encode(outputStream, response);
                 outputStream.flush();
             }
