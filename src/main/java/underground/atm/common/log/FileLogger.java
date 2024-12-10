@@ -1,4 +1,4 @@
-package underground.atm.common.logger;
+package underground.atm.common.log;
 
 import java.io.BufferedWriter;
 import java.io.IOException;

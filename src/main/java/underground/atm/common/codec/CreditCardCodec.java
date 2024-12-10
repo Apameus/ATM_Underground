@@ -1,4 +1,4 @@
-package underground.atm.common;
+package underground.atm.common.codec;
 
 import underground.atm.common.data.CreditCard;
 

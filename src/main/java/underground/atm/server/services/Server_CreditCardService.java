@@ -4,7 +4,7 @@ import underground.atm.common.data.CreditCard;
 import underground.atm.common.exceptions.exceptions.CreditCardNotFoundException;
 import underground.atm.common.exceptions.exceptions.InvalidAmountException;
 import underground.atm.common.exceptions.exceptions.NotEnoughMoneyException;
-import underground.atm.common.logger.Logger;
+import underground.atm.common.log.Logger;
 import underground.atm.server.repositories.Server_CreditCardRepository;
 
 public class Server_CreditCardService {
@@ -21,8 +21,8 @@ public class Server_CreditCardService {
 //        else if (amount > 1000) throw new ExtraValidationNeededException();
         CreditCard creditCard = serverCreditCardRepository.findCardBy(cardID);
         if (creditCard == null) throw new IllegalStateException();
-        logger.log("Depositing the amount of %s for creditID: %s", amount, cardID);
         serverCreditCardRepository.updateAmount(cardID, creditCard.amount() + amount);
+        logger.log("Depositing the amount of %s for creditID: %s", amount, cardID);
     }
 
     public void withdraw(int cardID, int amount) throws CreditCardNotFoundException, NotEnoughMoneyException, InvalidAmountException {
@@ -31,8 +31,8 @@ public class Server_CreditCardService {
         CreditCard creditCard = serverCreditCardRepository.findCardBy(cardID);
         if (creditCard == null) throw new IllegalStateException();
         if (creditCard.amount() < amount) throw new NotEnoughMoneyException();
-        logger.log("Withdrawing the amount of %s for creditID: %s", amount, cardID);
         serverCreditCardRepository.updateAmount(cardID, creditCard.amount() - amount);
+        logger.log("Withdrawing the amount of %s for creditID: %s", amount, cardID);
     }
 
     public int viewBalance(int cardID) throws CreditCardNotFoundException {
@@ -52,10 +52,10 @@ public class Server_CreditCardService {
         if (fromID == toID) ; //TODO..
         if (fromCreditCard.amount() < amount) throw new NotEnoughMoneyException();
 
-        logger.log("Transferring the amount of %s from creditID: %s, to creditID: %s", amount, fromID, toID);
-
         serverCreditCardRepository.updateAmount(fromID, fromCreditCard.amount() - amount);
         serverCreditCardRepository.updateAmount(toID, toCreditCard.amount() + amount);
+
+        logger.log("Transferring the amount of %s from creditID: %s, to creditID: %s", amount, fromID, toID);
     }
 
 

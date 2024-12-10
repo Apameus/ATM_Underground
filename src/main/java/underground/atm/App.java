@@ -3,13 +3,10 @@ import underground.atm.client.services.AuthorizationService;
 import underground.atm.client.ClientImpl;
 import underground.atm.client.repositories.CreditCardRepository;
 import underground.atm.client.services.CreditCardService;
-import underground.atm.common.logger.CompositeLogger;
-import underground.atm.common.logger.ConsoleLogger;
-import underground.atm.common.logger.FileLogger;
-import underground.atm.common.logger.Logger;
+import underground.atm.common.log.*;
 import underground.atm.server.CreditCardController;
 import underground.atm.server.TCPServer;
-import underground.atm.server.repositories.CreditCardDataSourceImpl;
+import underground.atm.server.repositories.FileBasedCreditCardDataSourceImpl;
 import underground.atm.server.repositories.Server_CreditCardRepositoryImpl;
 import underground.atm.server.serializers.CreditCardSerializer;
 import underground.atm.server.services.Server_AuthorizationService;
@@ -52,20 +49,19 @@ public final class App {
     public static void startServer(AppRole.Server config) throws IOException {
         Path logFile = Files.createTempFile("tcp-server-", ".log");
         logFile.toFile().deleteOnExit();
-        Logger.Factory logFactory = new Logger.CompositeLoggerFactory(new ConsoleLogger(), new FileLogger(logFile));
+        Logger.Factory logFactory = new CompositeLoggerFactory(new ConsoleLogger(), new FileLogger(logFile));
 
-        var creditCardSerializer = new CreditCardSerializer();
-        var creditCardDataSource = new CreditCardDataSourceImpl(Path.of(config.creditCardsFile()), creditCardSerializer);
+//        var creditCardSerializer = new CreditCardSerializer();
+        var creditCardDataSource = new FileBasedCreditCardDataSourceImpl(Path.of(config.creditCardsFile()));
         var server_creditCardRepository = new Server_CreditCardRepositoryImpl(creditCardDataSource);
 
-        Server_AuthorizationService server_authorizationService = new Server_AuthorizationService(server_creditCardRepository);
+        Server_AuthorizationService server_authorizationService = new Server_AuthorizationService(server_creditCardRepository, logFactory);
         Server_CreditCardService server_creditCardService = new Server_CreditCardService(server_creditCardRepository, logFactory);
 
         CreditCardController creditCardController = new CreditCardController(server_creditCardService, server_authorizationService);
 
         InetSocketAddress address = new InetSocketAddress(config.address(), config.port());
 
-//        System.out.println("Server running in: " + address.getAddress() + " at port: " + address.getPort());
         TCPServer server = new TCPServer(address, creditCardController, logFactory);
         server.run();
     }

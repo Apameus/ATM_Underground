@@ -260,5 +260,5 @@ sequenceDiagram
     alt Credit == null
         SE -->> C: IllegalStateException
     end
-    C -->> S: DepositResponse(Credit.amount) 
+    C -->> S: DepositResponse(Credit.amount ) 
 ```

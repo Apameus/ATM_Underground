@@ -1,4 +1,4 @@
-package underground.atm.server;
+package underground.atm.common.codec;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

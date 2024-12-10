@@ -5,9 +5,6 @@ import underground.atm.common.exceptions.exceptions.AuthorizationFailedException
 import underground.atm.common.exceptions.exceptions.CreditCardNotFoundException;
 import underground.atm.common.exceptions.exceptions.InvalidAmountException;
 import underground.atm.common.exceptions.exceptions.NotEnoughMoneyException;
-
-
-
 import java.io.Console;
 
 public final class TerminalUI {
@@ -28,7 +25,6 @@ public final class TerminalUI {
             if (inputID.equals("EXIT")) break;
 
             // AUTHORIZATION
-//            CreditCard authorizedCreditCard = authorization(inputID, inputPin);
             if (!authorization(inputID, inputPin)) continue;
             int authorizedCreditCardID = Integer.parseInt(inputID);
 
@@ -43,7 +39,6 @@ public final class TerminalUI {
                     case "balance" -> balance(authorizedCreditCardID);
                     case "exit" -> {break label;}
                 }
-
             }
         }
     }

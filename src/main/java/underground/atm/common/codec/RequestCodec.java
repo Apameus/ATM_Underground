@@ -1,7 +1,7 @@
-package underground.atm.common;
+package underground.atm.common.codec;
 
+import underground.atm.common.Request;
 import underground.atm.common.Request.*;
-import underground.atm.server.CodecUtils;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

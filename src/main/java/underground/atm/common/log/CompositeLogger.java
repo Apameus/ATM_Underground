@@ -1,16 +1,15 @@
-package underground.atm.common.logger;
+package underground.atm.common.log;
 
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 public final class CompositeLogger implements Logger{
 
     private final Logger[] loggers;
-    private final String operatorName;
+    private final String operatorClassName;
 
-    public CompositeLogger(String operatorName, Logger... loggers) {
-        this.operatorName = operatorName;
+    public CompositeLogger(String operatorClassName, Logger... loggers) {
+        this.operatorClassName = operatorClassName;
         this.loggers = loggers;
     }
 
@@ -18,7 +17,7 @@ public final class CompositeLogger implements Logger{
     public void log(String format, Object... args) {
         String date = ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME);
 
-        String log = "[%s] %s / %s".formatted(operatorName, String.format(format, args), date);
+        String log = "[%s] %s / %s".formatted(operatorClassName, String.format(format, args), date);
         for (Logger logger : loggers) {
             logger.log(log);
         }

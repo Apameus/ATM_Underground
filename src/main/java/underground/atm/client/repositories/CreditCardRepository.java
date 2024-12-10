@@ -23,7 +23,7 @@ public final class CreditCardRepository  {
             case Response.ErrorResponse(int exceptionType) -> {
                 if (exceptionType == 91) throw new AuthorizationFailedException();
             }
-            default -> throw new IllegalStateException("Something went wrong in authorization function");
+            default -> throw new IllegalStateException("Something went wrong in authorization function"); //TODO
         }
     }
 

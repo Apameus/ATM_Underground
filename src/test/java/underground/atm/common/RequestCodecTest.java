@@ -1,17 +1,14 @@
  package underground.atm.common;
 
-import org.assertj.core.api.ObjectAssert;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import underground.atm.server.services.Server_CreditCardService;
+import underground.atm.common.codec.RequestCodec;
 
 import java.io.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class RequestCodecTest { //TODO
-//    Server_CreditCardService serverCreditCardService = Mockito.mock(Server_CreditCardService.class);
+class RequestCodecTest {
     RequestCodec requestCodec = new RequestCodec();
 
     // ENCODE

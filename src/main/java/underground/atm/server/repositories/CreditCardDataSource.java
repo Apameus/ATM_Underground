@@ -3,8 +3,9 @@ package underground.atm.server.repositories;
 import underground.atm.common.data.CreditCard;
 
 import java.util.Collection;
+import java.util.Map;
 
 public interface CreditCardDataSource {
-    Collection<CreditCard> load();
-    void save(Collection<CreditCard> creditCreditCards);
+    Map<Integer,CreditCard> load();
+    void save(Map<Integer,CreditCard> creditCreditCards);
 }

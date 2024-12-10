@@ -5,8 +5,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import underground.atm.common.data.CreditCard;
 import underground.atm.common.exceptions.exceptions.AuthorizationFailedException;
+import underground.atm.common.log.CompositeLoggerFactory;
+import underground.atm.common.log.ConsoleLogger;
+import underground.atm.common.log.Logger;
 import underground.atm.server.repositories.Server_CreditCardRepository;
-import underground.atm.server.services.Server_AuthorizationService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -14,9 +16,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 class ServerAuthorizationServiceUnitTest {
-    private final Server_CreditCardRepository creditCardRepository = Mockito.mock(Server_CreditCardRepository.class);
+    private final Logger.Factory logFactory = new CompositeLoggerFactory(new ConsoleLogger());
     private final CreditCard creditCard = new CreditCard(1111,"11",100);
-    private final Server_AuthorizationService serverAuthorizationService = new Server_AuthorizationService(creditCardRepository);
+    private final Server_CreditCardRepository creditCardRepository = Mockito.mock(Server_CreditCardRepository.class);
+    private final Server_AuthorizationService serverAuthorizationService = new Server_AuthorizationService(creditCardRepository, logFactory);
 
     @Test
     @DisplayName("Authorize with valid credentials")

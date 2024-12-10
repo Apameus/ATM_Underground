@@ -1,2 +1,4 @@
 Version 1: Simple ATM transaction.
 Version 2: (+) Server-Client communication
+Version 2.1: (+) Logs
+Version 2.2: (~) Refactored Data Source from having serializers to writing actual byte straight to file

@@ -2,6 +2,7 @@ package underground.atm.common;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import underground.atm.common.codec.ResponseCodec;
 
 import java.io.*;
 
