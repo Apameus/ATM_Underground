@@ -13,8 +13,9 @@ public final class RequestCodec {
         return switch (type) {
             case AuthorizeRequest.TYPE -> {
                 int id = inputStream.readInt();
-                int pin = inputStream.readInt();
-                yield new AuthorizeRequest(id,String.valueOf(pin));
+                String pin = CodecUtils.decodeString(inputStream);
+//                int pin = inputStream.readInt();
+                yield new AuthorizeRequest(id, pin);
             }
             case DepositRequest.TYPE -> {
                 int id = inputStream.readInt();
@@ -45,7 +46,8 @@ public final class RequestCodec {
             case AuthorizeRequest(int id, String pin) -> {
                 outputStream.write(AuthorizeRequest.TYPE);
                 outputStream.writeInt(id);
-                outputStream.writeInt(Integer.parseInt(pin));
+                CodecUtils.encodeString(outputStream, pin);
+//                outputStream.writeInt(Integer.parseInt(pin));
             }
             case DepositRequest(int id, int amount) -> {
                 outputStream.write(DepositRequest.TYPE);

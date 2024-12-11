@@ -2,6 +2,7 @@
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import underground.atm.common.codec.CodecUtils;
 import underground.atm.common.codec.RequestCodec;
 
 import java.io.*;
@@ -79,7 +80,10 @@ class RequestCodecTest {
 
         dataOutputStream.write(Request.AuthorizeRequest.TYPE);
         dataOutputStream.writeInt(2004);
-        dataOutputStream.writeInt(11);
+        CodecUtils.encodeString(dataOutputStream, "11");
+//        dataOutputStream.writeInt(2);
+//        byte[] str = {'1','1'};
+//        dataOutputStream.write(str);
 
         assertThat(requestCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
                 .isInstanceOfSatisfying(Request.AuthorizeRequest.class, request -> {
