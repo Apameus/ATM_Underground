@@ -5,19 +5,24 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import underground.atm.common.data.CreditCard;
+import underground.atm.server.codec.CreditCardCodec;
+import underground.atm.server.codec.IntegerCodec;
+import underground.atm.server.codec.StringCodec;
 
 import java.io.IOException;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class CreditCardDynamicMemoryManagerTest {
-    CreditCardDynamicMemoryManager dynamicMemoryManager;
+class DynamicMemoryManagerTest {
+    DynamicMemoryManager<Integer,CreditCard> dynamicMemoryManager;
 
     @BeforeEach
     void initialize(@TempDir Path path) throws IOException {
         var file = path.resolve("map.data");
-         dynamicMemoryManager = new CreditCardDynamicMemoryManager(file);
+        CreditCardCodec creditCardCodec = new CreditCardCodec(new StringCodec(16));
+        var integerCodec = new IntegerCodec();
+        dynamicMemoryManager = new DynamicMemoryManager<Integer,CreditCard>(file, integerCodec,creditCardCodec);
     }
 
     @Test
@@ -37,13 +42,13 @@ class CreditCardDynamicMemoryManagerTest {
 
     @Test
     @DisplayName("Get from collision")
-    void getFromCollision() {
+    void getFromCollision() { //TODO
         CreditCard creditCard = new CreditCard(2004, "0004", 100);
     }
 
     @Test
     @DisplayName("Put to collision")
-    void putToCollision() {
+    void putToCollision() { //TODO
 
     }
 }
