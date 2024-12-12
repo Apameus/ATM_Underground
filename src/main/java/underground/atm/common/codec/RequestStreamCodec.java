@@ -7,14 +7,13 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public final class RequestCodec {
+public final class RequestStreamCodec {
     public Request decode(DataInputStream inputStream) throws IOException {
         byte type = inputStream.readByte();
         return switch (type) {
             case AuthorizeRequest.TYPE -> {
                 int id = inputStream.readInt();
-                String pin = CodecUtils.decodeString(inputStream);
-//                int pin = inputStream.readInt();
+                String pin = StreamCodecUtils.decodeString(inputStream);
                 yield new AuthorizeRequest(id, pin);
             }
             case DepositRequest.TYPE -> {
@@ -46,8 +45,7 @@ public final class RequestCodec {
             case AuthorizeRequest(int id, String pin) -> {
                 outputStream.write(AuthorizeRequest.TYPE);
                 outputStream.writeInt(id);
-                CodecUtils.encodeString(outputStream, pin);
-//                outputStream.writeInt(Integer.parseInt(pin));
+                StreamCodecUtils.encodeString(outputStream, pin);
             }
             case DepositRequest(int id, int amount) -> {
                 outputStream.write(DepositRequest.TYPE);

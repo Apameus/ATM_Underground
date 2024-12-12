@@ -1,9 +1,9 @@
 package underground.atm.server;
 
 import underground.atm.common.Request;
-import underground.atm.common.codec.RequestCodec;
+import underground.atm.common.codec.RequestStreamCodec;
 import underground.atm.common.Response;
-import underground.atm.common.codec.ResponseCodec;
+import underground.atm.common.codec.ResponseStreamCodec;
 import underground.atm.common.log.Logger;
 
 import java.io.*;
@@ -14,8 +14,8 @@ public final class TCPServer {
 
     private final ServerSocket serverSocket;
     private final CreditCardController creditCardController;
-    private final RequestCodec requestCodec;
-    private final ResponseCodec responseCodec;
+    private final RequestStreamCodec requestStreamCodec;
+    private final ResponseStreamCodec responseStreamCodec;
     private final Logger logger;
 
     public TCPServer(SocketAddress address, CreditCardController creditCardController, Logger.Factory logFactory) throws IOException {
@@ -24,8 +24,8 @@ public final class TCPServer {
 
         this.creditCardController = creditCardController;
 
-        requestCodec = new RequestCodec();
-        responseCodec = new ResponseCodec();
+        requestStreamCodec = new RequestStreamCodec();
+        responseStreamCodec = new ResponseStreamCodec();
         this.logger = logFactory.create("TCPServer");
     }
 
@@ -39,7 +39,7 @@ public final class TCPServer {
 
                 logger.log("Connection established from %s", client.getRemoteSocketAddress());
 
-                Request request = requestCodec.decode(inputStream);
+                Request request = requestStreamCodec.decode(inputStream);
 
                 logger.log("Got request %s", request);
 
@@ -52,7 +52,7 @@ public final class TCPServer {
 
                 logger.log("Sending response: %s", response);
 
-                responseCodec.encode(outputStream, response);
+                responseStreamCodec.encode(outputStream, response);
                 outputStream.flush();
             }
 //            finally {

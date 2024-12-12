@@ -2,15 +2,15 @@
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import underground.atm.common.codec.CodecUtils;
-import underground.atm.common.codec.RequestCodec;
+import underground.atm.common.codec.StreamCodecUtils;
+import underground.atm.common.codec.RequestStreamCodec;
 
 import java.io.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class RequestCodecTest {
-    RequestCodec requestCodec = new RequestCodec();
+class RequestStreamCodecTest {
+    RequestStreamCodec requestStreamCodec = new RequestStreamCodec();
 
     // ENCODE
 
@@ -20,9 +20,9 @@ class RequestCodecTest {
 
         var out = new ByteArrayOutputStream();
         Request.AuthorizeRequest authorizeRequest = new Request.AuthorizeRequest(2004, "11");
-        requestCodec.encode(new DataOutputStream(out), authorizeRequest);
+        requestStreamCodec.encode(new DataOutputStream(out), authorizeRequest);
 
-        assertThat(requestCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
+        assertThat(requestStreamCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
                 .isEqualTo(authorizeRequest);
     }
 
@@ -31,9 +31,9 @@ class RequestCodecTest {
     void encodeDepositRequest() throws IOException {
         var out = new ByteArrayOutputStream();
         Request.DepositRequest depositRequest = new Request.DepositRequest(2003, 100);
-        requestCodec.encode(new DataOutputStream(out), depositRequest);
+        requestStreamCodec.encode(new DataOutputStream(out), depositRequest);
 
-        assertThat(requestCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
+        assertThat(requestStreamCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
                 .isEqualTo(depositRequest);
     }
 
@@ -42,9 +42,9 @@ class RequestCodecTest {
     void encodeWithdrawRequest() throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Request.WithdrawRequest withdrawRequest = new Request.WithdrawRequest(2004, 100);
-        requestCodec.encode(new DataOutputStream(out), withdrawRequest);
+        requestStreamCodec.encode(new DataOutputStream(out), withdrawRequest);
 
-        assertThat(requestCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
+        assertThat(requestStreamCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
                 .isEqualTo(withdrawRequest);
     }
 
@@ -53,9 +53,9 @@ class RequestCodecTest {
     void encodeTransferRequest() throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Request.TransferRequest transferRequest = new Request.TransferRequest(2004, 2002, 100);
-        requestCodec.encode(new DataOutputStream(out),transferRequest);
+        requestStreamCodec.encode(new DataOutputStream(out),transferRequest);
 
-        assertThat(requestCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
+        assertThat(requestStreamCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
                 .isEqualTo(transferRequest);
     }
 
@@ -64,9 +64,9 @@ class RequestCodecTest {
     void encodeViewBalanceRequest() throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Request.ViewBalanceRequest viewBalanceRequest = new Request.ViewBalanceRequest(2004);
-        requestCodec.encode(new DataOutputStream(out), viewBalanceRequest);
+        requestStreamCodec.encode(new DataOutputStream(out), viewBalanceRequest);
 
-        assertThat(requestCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
+        assertThat(requestStreamCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
                 .isEqualTo(viewBalanceRequest);
     }
 
@@ -80,12 +80,12 @@ class RequestCodecTest {
 
         dataOutputStream.write(Request.AuthorizeRequest.TYPE);
         dataOutputStream.writeInt(2004);
-        CodecUtils.encodeString(dataOutputStream, "11");
+        StreamCodecUtils.encodeString(dataOutputStream, "11");
 //        dataOutputStream.writeInt(2);
 //        byte[] str = {'1','1'};
 //        dataOutputStream.write(str);
 
-        assertThat(requestCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
+        assertThat(requestStreamCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
                 .isInstanceOfSatisfying(Request.AuthorizeRequest.class, request -> {
                     assertThat(request.id()).isEqualTo(2004);
                     assertThat(request.pin()).isEqualTo("11");
@@ -102,7 +102,7 @@ class RequestCodecTest {
         dataOutputStream.writeInt(2004);
         dataOutputStream.writeInt(100);
 
-        assertThat(requestCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
+        assertThat(requestStreamCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
                 .isInstanceOfSatisfying(Request.DepositRequest.class, request -> {
                     assertThat(request.id()).isEqualTo(2004);
                     assertThat(request.amount()).isEqualTo(100);
@@ -119,7 +119,7 @@ class RequestCodecTest {
         dataOutputStream.writeInt(2004);
         dataOutputStream.writeInt(100);
 
-        assertThat(requestCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
+        assertThat(requestStreamCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
                 .isInstanceOfSatisfying(Request.WithdrawRequest.class, request -> {
                     assertThat(request.id()).isEqualTo(2004);
                     assertThat(request.amount()).isEqualTo(100);
@@ -137,7 +137,7 @@ class RequestCodecTest {
         dataOutputStream.writeInt(2002);
         dataOutputStream.writeInt(100);
 
-        assertThat(requestCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
+        assertThat(requestStreamCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
                 .isInstanceOfSatisfying(Request.TransferRequest.class, request -> {
                     assertThat(request.fromId()).isEqualTo(2004);
                     assertThat(request.toId()).isEqualTo(2002);
@@ -154,7 +154,7 @@ class RequestCodecTest {
         dataOutputStream.write(Request.ViewBalanceRequest.TYPE);
         dataOutputStream.writeInt(2004);
 
-        assertThat(requestCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
+        assertThat(requestStreamCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
                 .isInstanceOfSatisfying(Request.ViewBalanceRequest.class, request -> {
                     assertThat(request.id()).isEqualTo(2004);
                 });

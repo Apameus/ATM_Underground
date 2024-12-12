@@ -6,7 +6,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public class ResponseCodec {
+public class ResponseStreamCodec {
 //    private CreditCardCodec creditCardCodec = new CreditCardCodec();
 
     public void encode(DataOutputStream dataOutput, Response response) throws IOException {

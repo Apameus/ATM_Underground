@@ -4,7 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public interface CodecUtils {
+public interface StreamCodecUtils {
 
     static void encodeString(DataOutputStream dataOutput, String str) throws IOException {
         byte[] bytes = str.getBytes();

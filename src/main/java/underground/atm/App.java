@@ -51,7 +51,6 @@ public final class App {
         logFile.toFile().deleteOnExit();
         Logger.Factory logFactory = new CompositeLoggerFactory(new ConsoleLogger(), new FileLogger(logFile));
 
-//        var creditCardSerializer = new CreditCardSerializer();
         var creditCardDataSource = new FileBasedCreditCardDataSourceImpl(Path.of(config.creditCardsFile()));
         var server_creditCardRepository = new Server_CreditCardRepositoryImpl(creditCardDataSource);
 

@@ -2,15 +2,15 @@ package underground.atm.common;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import underground.atm.common.codec.ResponseCodec;
+import underground.atm.common.codec.ResponseStreamCodec;
 
 import java.io.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ResponseCodecTest {
+class ResponseStreamCodecTest {
 
-    private ResponseCodec responseCodec = new ResponseCodec();
+    private ResponseStreamCodec responseStreamCodec = new ResponseStreamCodec();
 
 
     // ENCODE
@@ -21,9 +21,9 @@ class ResponseCodecTest {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Response.AuthorizeResponse authorizeResponse = new Response.AuthorizeResponse();
 
-        responseCodec.encode(new DataOutputStream(out),authorizeResponse);
+        responseStreamCodec.encode(new DataOutputStream(out),authorizeResponse);
 
-        assertThat(responseCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
+        assertThat(responseStreamCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
                 .isEqualTo(authorizeResponse);
 
     }
@@ -34,9 +34,9 @@ class ResponseCodecTest {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Response.DepositResponse depositResponse = new Response.DepositResponse();
 
-        responseCodec.encode(new DataOutputStream(out),depositResponse);
+        responseStreamCodec.encode(new DataOutputStream(out),depositResponse);
 
-        assertThat(responseCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
+        assertThat(responseStreamCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
                 .isEqualTo(depositResponse);
 
     }
@@ -47,9 +47,9 @@ class ResponseCodecTest {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Response.WithdrawResponse withdrawResponse = new Response.WithdrawResponse();
 
-        responseCodec.encode(new DataOutputStream(out),withdrawResponse);
+        responseStreamCodec.encode(new DataOutputStream(out),withdrawResponse);
 
-        assertThat(responseCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
+        assertThat(responseStreamCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
                 .isEqualTo(withdrawResponse);
 
     }
@@ -60,9 +60,9 @@ class ResponseCodecTest {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Response.WithdrawResponse withdrawResponse = new Response.WithdrawResponse();
 
-        responseCodec.encode(new DataOutputStream(out),withdrawResponse);
+        responseStreamCodec.encode(new DataOutputStream(out),withdrawResponse);
 
-        assertThat(responseCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
+        assertThat(responseStreamCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
                 .isEqualTo(withdrawResponse);
 
     }
@@ -73,9 +73,9 @@ class ResponseCodecTest {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Response.ViewBalanceResponse viewBalanceResponse = new Response.ViewBalanceResponse(100);
 
-        responseCodec.encode(new DataOutputStream(out),viewBalanceResponse);
+        responseStreamCodec.encode(new DataOutputStream(out),viewBalanceResponse);
 
-        assertThat(responseCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
+        assertThat(responseStreamCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
                 .isInstanceOfSatisfying(Response.ViewBalanceResponse.class, response -> {
                     assertThat(response.balance()).isEqualTo(100);
                 });
@@ -88,9 +88,9 @@ class ResponseCodecTest {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Response.ErrorResponse errorResponse = new Response.ErrorResponse(92);
 
-        responseCodec.encode(new DataOutputStream(out),errorResponse);
+        responseStreamCodec.encode(new DataOutputStream(out),errorResponse);
 
-        assertThat(responseCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
+        assertThat(responseStreamCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
                 .isInstanceOfSatisfying(Response.ErrorResponse.class, response -> {
                     assertThat(response.exceptionType()).isEqualTo(92);
                 });
@@ -106,7 +106,7 @@ class ResponseCodecTest {
 
         dataOutputStream.write(Response.AuthorizeResponse.TYPE);
 
-        assertThat(responseCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
+        assertThat(responseStreamCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
                 .isEqualTo(new Response.AuthorizeResponse());
     }
 
@@ -118,7 +118,7 @@ class ResponseCodecTest {
 
         dataOutputStream.write(Response.DepositResponse.TYPE);
 
-        assertThat(responseCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
+        assertThat(responseStreamCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
                 .isEqualTo(new Response.DepositResponse());
     }
 
@@ -130,7 +130,7 @@ class ResponseCodecTest {
 
         dataOutputStream.write(Response.WithdrawResponse.TYPE);
 
-        assertThat(responseCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
+        assertThat(responseStreamCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
                 .isEqualTo(new Response.WithdrawResponse());
     }
 
@@ -142,7 +142,7 @@ class ResponseCodecTest {
 
         dataOutputStream.write(Response.TransferResponse.TYPE);
 
-        assertThat(responseCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
+        assertThat(responseStreamCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
                 .isEqualTo(new Response.TransferResponse());
     }
 
@@ -155,7 +155,7 @@ class ResponseCodecTest {
         dataOutputStream.write(Response.ViewBalanceResponse.TYPE);
         dataOutputStream.writeInt(100);
 
-        assertThat(responseCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
+        assertThat(responseStreamCodec.decode(new DataInputStream(new ByteArrayInputStream(out.toByteArray()))))
                 .isInstanceOfSatisfying(Response.ViewBalanceResponse.class, response -> {
                     assertThat(response.balance()).isEqualTo(100);
                 });
