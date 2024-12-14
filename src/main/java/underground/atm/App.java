@@ -6,9 +6,11 @@ import underground.atm.client.services.CreditCardService;
 import underground.atm.common.log.*;
 import underground.atm.server.CreditCardController;
 import underground.atm.server.TCPServer;
-import underground.atm.server.repositories.FileBasedCreditCardDataSourceImpl;
+import underground.atm.server.codec.CreditCardCodec;
+import underground.atm.server.codec.IntegerCodec;
+import underground.atm.server.codec.StringCodec;
 import underground.atm.server.repositories.Server_CreditCardRepositoryImpl;
-import underground.atm.server.serializers.CreditCardSerializer;
+import underground.atm.server.repositories.map.FileHashMap_ForwardProbing;
 import underground.atm.server.services.Server_AuthorizationService;
 import underground.atm.server.services.Server_CreditCardService;
 import underground.atm.ui.TerminalUI;
@@ -51,8 +53,9 @@ public final class App {
         logFile.toFile().deleteOnExit();
         Logger.Factory logFactory = new CompositeLoggerFactory(new ConsoleLogger(), new FileLogger(logFile));
 
-        var creditCardDataSource = new FileBasedCreditCardDataSourceImpl(Path.of(config.creditCardsFile()));
-        var server_creditCardRepository = new Server_CreditCardRepositoryImpl(creditCardDataSource);
+
+        var fileHashMap = new FileHashMap_ForwardProbing(Path.of(config.creditCardsFile), new IntegerCodec(), new CreditCardCodec(new StringCodec(4)));
+        var server_creditCardRepository = new Server_CreditCardRepositoryImpl(fileHashMap);
 
         Server_AuthorizationService server_authorizationService = new Server_AuthorizationService(server_creditCardRepository, logFactory);
         Server_CreditCardService server_creditCardService = new Server_CreditCardService(server_creditCardRepository, logFactory);
