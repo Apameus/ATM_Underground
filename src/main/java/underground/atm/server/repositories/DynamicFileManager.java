@@ -14,7 +14,7 @@ class DynamicFileManager<K, V> {
     private static final byte EXISTS_FLAG = 1;
 
     private final int maxSizeOfEntry;
-    private int storedEntries; // Index 0 (fixed)
+    private int storedEntries; // Index 0-3 (fixed)
     private int maxEntries;
 
     private final Codec<K> keyCodec;
@@ -27,7 +27,7 @@ class DynamicFileManager<K, V> {
 
         maxSizeOfEntry = keyCodec.maxSize() + valueCodec.maxSize() + 1; // +1 for the flag
         this.maxEntries = maxEntries;
-        if (accessFile.length() == 0) accessFile.setLength((long) maxEntries * maxSizeOfEntry + 4); // If the file is empty, we create new file (+4b for the storedEntries)
+        if (accessFile.length() == 0) accessFile.setLength((long) maxEntries * maxSizeOfEntry + Integer.BYTES); // If the file is empty, we create new file (+4 for the storedEntries)
         else { // Read the storedEntries that the file previously had
             accessFile.seek(0);
             storedEntries = accessFile.readInt();
@@ -49,9 +49,8 @@ class DynamicFileManager<K, V> {
                 break;
             }
             offset += maxSizeOfEntry; // Collision: forward probing
-            accessFile.seek(offset); // move pointer to next entry
-//            if (storedEntries >= maxEntries) offset = 4; // continue from the start  //TODO: Warning
-            if (offset >= maxEntries) offset = 4;
+            accessFile.seek(offset);
+            if (offset >= accessFile.length() - Integer.BYTES) offset = 4; // Continue from the start (excluding storedEntries)
         }
         writeEntry(key, value, offset);
         storedEntries++;
@@ -61,35 +60,53 @@ class DynamicFileManager<K, V> {
         accessFile.writeInt((int) storedEntries);
     }
 
-    V get(K key) throws IOException { //TODO: Refactor, add continue from start logic
+    V get(K key) throws IOException {
         long offset = offset(key);
         // Collision check
-        while (true) {
-            if (offset >= accessFile.length()) return null; // key doesn't exist
-            accessFile.seek(offset);
-            if (accessFile.readByte() != EXISTS_FLAG) {return null;}  // key doesn't exist //TODO: //Warning
-            if (keyCodec.read(accessFile).equals(key)) break;
+        for (int i = 0; i < storedEntries; i ++) {
+            if (offset >= accessFile.length() - Integer.BYTES) offset = 4; // Continue from the start (excluding storedEntries)
+            accessFile.seek(offset + 1);
+            if (keyCodec.read(accessFile).equals(key)) {
+                return valueCodec.read(accessFile);
+            }
             offset += maxSizeOfEntry;
         }
-        return valueCodec.read(accessFile);
+        return null;
+    }
+
+    public void remove(K key) throws IOException {
+        long offset = offset(key);
+        // Collision check
+        for (int i = 0; i < storedEntries; i ++) {
+            if (offset >= accessFile.length() - Integer.BYTES) offset = 4; // Continue from the start (excluding storedEntries)
+            accessFile.seek(offset + 1);
+            if (keyCodec.read(accessFile).equals(key)) {
+                accessFile.seek(offset);
+                accessFile.write(0); // 0 the flag
+                break;
+            }
+            offset += maxSizeOfEntry;
+        }
     }
 
     private void resize() throws IOException {
-//        long previousLength = accessFile.length();
+        long previousLength = accessFile.length();
         maxEntries *= 2;
-        long newLength = (long) maxEntries * maxSizeOfEntry + 4; // + 4 for the storedEntries
+        long newLength = (long) maxEntries * maxSizeOfEntry + Integer.BYTES; // + 4 for the storedEntries
         accessFile.setLength(newLength);
         var hashMap = HashMap.<K,V>newHashMap((int) storedEntries);
-        for (long offset = 4; offset < newLength; offset += maxSizeOfEntry) { // Offset should start from Index 4 to avoid overriding storedEntries
-             accessFile.seek(offset);
-            if (accessFile.readByte() != EXISTS_FLAG) continue;   //TODO: //WARNING: if the byte is 1 for random reason & there is no entry afters ?
+        for (long offset = 4; offset < previousLength; offset += maxSizeOfEntry) { // Offset should start from Index 4 to avoid overriding storedEntries
             accessFile.seek(offset);
-
             accessFile.writeByte(0);
             K key = keyCodec.read(accessFile);
             V value = valueCodec.read(accessFile);
             hashMap.put(key,value);
         }
+        for (long offset = previousLength; offset < newLength; offset += maxSizeOfEntry) { // Make sure that all the new flag indexes are 0
+            accessFile.seek(offset);
+            accessFile.write(0);
+        }
+        storedEntries = 0;
         for (Map.Entry<K, V> entry : hashMap.entrySet()) {
             put(entry.getKey(),entry.getValue());
         }
@@ -97,7 +114,7 @@ class DynamicFileManager<K, V> {
 
     private long offset(K key) {
         long has = Math.abs(key.hashCode()) % maxEntries;
-        return has * maxSizeOfEntry + 4; // +4 to exclude index 0-3 (storedEntries)
+        return has * maxSizeOfEntry + Integer.BYTES; // + 4 to exclude index 0-3 (storedEntries)
     }
 
     private void writeEntry(K key, V value, long offset) throws IOException {
@@ -110,7 +127,6 @@ class DynamicFileManager<K, V> {
     public int getMaxEntries(){
         return maxEntries;
     }
-
 }
 
 
