@@ -19,9 +19,9 @@ import java.nio.file.Path;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-class DynamicFileManagerTest {
+class FileHashMapForwardProbingTest {
 
-    DynamicFileManager<Integer,CreditCard> dynamicFileManager;
+    FileHashMap_ForwardProbing<Integer,CreditCard> fileHashMapForwardProbing;
     Path file;
     IntegerCodec integerCodec = new IntegerCodec();
     CreditCardCodec creditCardCodec = new CreditCardCodec(new StringCodec(4));
@@ -29,7 +29,7 @@ class DynamicFileManagerTest {
     @BeforeEach
     void initialize() throws IOException {
         file = Files.createTempFile("map", ".data");
-        dynamicFileManager = new DynamicFileManager<>(file, integerCodec,creditCardCodec,2);
+        fileHashMapForwardProbing = new FileHashMap_ForwardProbing<>(file, integerCodec,creditCardCodec,2);
     }
 
     @AfterEach
@@ -41,15 +41,15 @@ class DynamicFileManagerTest {
     @DisplayName("Test simple put and get operation")
     void testSimplePutAndGetOperation() throws IOException {
         CreditCard creditCard = new CreditCard(2004, "0004", 100);
-        dynamicFileManager.put(creditCard.id(), creditCard);
+        fileHashMapForwardProbing.put(creditCard.id(), creditCard);
 
-        assertThat(dynamicFileManager.get(creditCard.id())).isEqualTo(creditCard);
+        assertThat(fileHashMapForwardProbing.get(creditCard.id())).isEqualTo(creditCard);
     }
 
     @Test
     @DisplayName("Get with key that doesn't exist should return null")
     void getWithKeyThatDoesNotExistShouldReturnNull() throws IOException {
-        assertThat(dynamicFileManager.get(0001)).isNull();
+        assertThat(fileHashMapForwardProbing.get(0001)).isNull();
     }
 
     @Test
@@ -58,10 +58,10 @@ class DynamicFileManagerTest {
         CreditCard creditCardA = new CreditCard(2004, "0004", 100);
         CreditCard creditCardB = new CreditCard(2004, "5000", 5000);
 
-        dynamicFileManager.put(creditCardA.id(), creditCardA);
-        dynamicFileManager.put(creditCardA.id(), creditCardB);
+        fileHashMapForwardProbing.put(creditCardA.id(), creditCardA);
+        fileHashMapForwardProbing.put(creditCardA.id(), creditCardB);
 
-        assertThat(dynamicFileManager.get(creditCardA.id())).isEqualTo(creditCardB);
+        assertThat(fileHashMapForwardProbing.get(creditCardA.id())).isEqualTo(creditCardB);
     }
 
     @Test
@@ -70,7 +70,7 @@ class DynamicFileManagerTest {
         var keyAsValueCodec = new StringCodec(4);
         var hashAsKeyCodec = new ControlledHashCodec(keyAsValueCodec);
 //        var file = Files.createFile(dir).resolve("map.data");
-        var map = new DynamicFileManager<>(dir.resolve("map.data"), hashAsKeyCodec, keyAsValueCodec);
+        var map = new FileHashMap_ForwardProbing<>(dir.resolve("map.data"), hashAsKeyCodec, keyAsValueCodec);
 
         var a = new ControlledHashObject(500, "A");
         var b = new ControlledHashObject(500, "B");
@@ -89,22 +89,22 @@ class DynamicFileManagerTest {
         CreditCard creditCardB = new CreditCard(2016, "5000", 5000);
         CreditCard creditCardC = new CreditCard(1008, "0004", 100);
 
-        dynamicFileManager.put(creditCardA.id(),creditCardA);
-        dynamicFileManager.put(creditCardB.id(),creditCardB);
+        fileHashMapForwardProbing.put(creditCardA.id(),creditCardA);
+        fileHashMapForwardProbing.put(creditCardB.id(),creditCardB);
 
-        assertDoesNotThrow(() -> dynamicFileManager.put(creditCardC.id(), creditCardC));
-        assertThat(dynamicFileManager.get(creditCardC.id())).isEqualTo(creditCardC);
-        assertThat(dynamicFileManager.getMaxEntries()).isEqualTo(4);
+        assertDoesNotThrow(() -> fileHashMapForwardProbing.put(creditCardC.id(), creditCardC));
+        assertThat(fileHashMapForwardProbing.get(creditCardC.id())).isEqualTo(creditCardC);
+        assertThat(fileHashMapForwardProbing.getMaxEntries()).isEqualTo(4);
     }
 
     @Test
     @DisplayName("Overload PUT and RESIZE methods tests")
     void overloadPutAndResizeMethodsTests() throws IOException {
         for (int i = 0; i < 500; i++) {
-            dynamicFileManager.put(i, new CreditCard(i, String.valueOf(i), i));
+            fileHashMapForwardProbing.put(i, new CreditCard(i, String.valueOf(i), i));
         }
         for (int i = 0; i < 500; i++) {
-            CreditCard creditCard = dynamicFileManager.get(i);
+            CreditCard creditCard = fileHashMapForwardProbing.get(i);
             assertThat(creditCard.id()).isEqualTo(i);
             assertThat(creditCard.pin()).isEqualTo(String.valueOf(i));
             assertThat(creditCard.amount()).isEqualTo(i);
@@ -116,7 +116,7 @@ class DynamicFileManagerTest {
     void getFromCollisionWherePreviousElementIsRemoved(@TempDir Path dir) throws IOException {
         var keyAsValueCodec = new StringCodec(50);
         var hashAsKeyCodec = new ControlledHashCodec(keyAsValueCodec);
-        var cDynamicFileManager = new DynamicFileManager<>(dir.resolve("cDynamicFileManager.data"), hashAsKeyCodec, keyAsValueCodec);
+        var cDynamicFileManager = new FileHashMap_ForwardProbing<>(dir.resolve("cDynamicFileManager.data"), hashAsKeyCodec, keyAsValueCodec);
 
         var a = new ControlledHashObject(500, "A");
         var b = new ControlledHashObject(500, "B");
@@ -129,11 +129,36 @@ class DynamicFileManagerTest {
     }
 
     @Test
+    @DisplayName("gamiete o ioannis")
+    void gamieteOIoannis(@TempDir Path dir) throws IOException {
+        var keyAsValueCodec = new StringCodec(4);
+        var hashAsKeyCodec = new ControlledHashCodec(keyAsValueCodec);
+        var cDynamicFileManager = new FileHashMap_ForwardProbing<>(dir.resolve("cDynamicFileManager.data"), hashAsKeyCodec, keyAsValueCodec);
+
+        for (int i = 0; i < 500; i++) { // Put 500 entries with collision
+            String stupidValue = String.valueOf(i);
+            var collisionKey = new ControlledHashObject(500, stupidValue);
+            System.out.println(i);
+            cDynamicFileManager.put(collisionKey, stupidValue);
+        }
+
+        var target = new ControlledHashObject(500, "A500"); // Put another entry with collision
+        cDynamicFileManager.put(target, "A500");
+
+        for (int i = 0; i < 500; i++) { // Remove the first 500 collision entries
+            ControlledHashObject collisionKey = new ControlledHashObject(500, String.valueOf(i));
+            cDynamicFileManager.remove(collisionKey);
+        }
+        // Find the last motherf*cker
+        assertThat(cDynamicFileManager.get(target)).isEqualTo("A500");
+    }
+
+    @Test
     @DisplayName("Put and Get from collision where the object is placed in the beginning of the file")
     void putAndGetFromCollisionWhereTheObjectIsPlacedInTheBeginningOfTheFile(@TempDir Path dir) throws IOException { //TODO
         var keyAsValueCodec = new StringCodec(2);
         var hashAsKeyCodec = new ControlledHashCodec(keyAsValueCodec);
-        var conManager = new DynamicFileManager<>(dir.resolve("map.data"),hashAsKeyCodec,keyAsValueCodec,4);
+        var conManager = new FileHashMap_ForwardProbing<>(dir.resolve("map.data"),hashAsKeyCodec,keyAsValueCodec,4);
 
         var a1 = new ControlledHashObject(1,"A1");
         var a2 = new ControlledHashObject(1,"A2");

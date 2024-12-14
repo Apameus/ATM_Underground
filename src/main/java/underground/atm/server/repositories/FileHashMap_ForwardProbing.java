@@ -8,7 +8,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-class DynamicFileManager<K, V> {
+class FileHashMap_ForwardProbing<K, V> {
 
     private final RandomAccessFile accessFile;
     private static final byte EXISTS_FLAG = 1;
@@ -20,7 +20,7 @@ class DynamicFileManager<K, V> {
     private final Codec<K> keyCodec;
     private final Codec<V> valueCodec;
 
-    DynamicFileManager(Path path, Codec<K> keyCodec, Codec<V> valueCodec, int maxEntries) throws IOException {
+    FileHashMap_ForwardProbing(Path path, Codec<K> keyCodec, Codec<V> valueCodec, int maxEntries) throws IOException {
         accessFile = new RandomAccessFile(path.toFile(), "rw");
         this.keyCodec = keyCodec;
         this.valueCodec = valueCodec;
@@ -34,7 +34,7 @@ class DynamicFileManager<K, V> {
             this.maxEntries = storedEntries * 2;
         }
     }
-    DynamicFileManager(Path path, Codec<K> keyCodec, Codec<V> valueCodec) throws IOException {
+    FileHashMap_ForwardProbing(Path path, Codec<K> keyCodec, Codec<V> valueCodec) throws IOException {
         this(path,keyCodec,valueCodec,16);
     }
 
@@ -44,13 +44,12 @@ class DynamicFileManager<K, V> {
         long offset = offset(key);
         accessFile.seek(offset);
         while (accessFile.readByte() == EXISTS_FLAG) {
+            if (offset >= accessFile.length() - Integer.BYTES) offset = 4; // Continue from the start (excluding storedEntries)
             if (keyCodec.read(accessFile).equals(key)) { // Override value
                 writeEntry(key, value, offset);
                 break;
             }
             offset += maxSizeOfEntry; // Collision: forward probing
-            accessFile.seek(offset);
-            if (offset >= accessFile.length() - Integer.BYTES) offset = 4; // Continue from the start (excluding storedEntries)
         }
         writeEntry(key, value, offset);
         storedEntries++;
