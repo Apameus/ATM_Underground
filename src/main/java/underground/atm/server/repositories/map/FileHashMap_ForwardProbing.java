@@ -1,4 +1,4 @@
-package underground.atm.server.repositories;
+package underground.atm.server.repositories.map;
 
 import underground.atm.server.codec.Codec;
 
@@ -8,7 +8,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-class FileHashMap_ForwardProbing<K, V> {
+public class FileHashMap_ForwardProbing<K, V> implements FileHashMap<K,V>{
 
     private final RandomAccessFile accessFile;
     private static final byte EXISTS_FLAG = 1;
@@ -34,12 +34,12 @@ class FileHashMap_ForwardProbing<K, V> {
             this.maxEntries = storedEntries * 2;
         }
     }
-    FileHashMap_ForwardProbing(Path path, Codec<K> keyCodec, Codec<V> valueCodec) throws IOException {
+    public FileHashMap_ForwardProbing(Path path, Codec<K> keyCodec, Codec<V> valueCodec) throws IOException {
         this(path,keyCodec,valueCodec,16);
     }
 
-
-    void put(K key, V value) throws IOException {
+    @Override
+    public void put(K key, V value) throws IOException {
         if (storedEntries == maxEntries) resize();
         long offset = offset(key);
         accessFile.seek(offset);
@@ -59,7 +59,8 @@ class FileHashMap_ForwardProbing<K, V> {
         accessFile.writeInt((int) storedEntries);
     }
 
-    V get(K key) throws IOException {
+    @Override
+    public V get(K key) throws IOException {
         long offset = offset(key);
         // Collision check
         for (int i = 0; i < storedEntries; i ++) {
@@ -73,6 +74,7 @@ class FileHashMap_ForwardProbing<K, V> {
         return null;
     }
 
+    @Override
     public void remove(K key) throws IOException {
         long offset = offset(key);
         // Collision check
@@ -126,6 +128,8 @@ class FileHashMap_ForwardProbing<K, V> {
     public int getMaxEntries(){
         return maxEntries;
     }
+
+
 }
 
 
