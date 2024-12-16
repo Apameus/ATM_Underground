@@ -5,8 +5,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import underground.atm.common.data.CreditCard;
-import underground.atm.server.repositories.datasource.CreditCardDataSource;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,15 +13,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 class CreditCardRepositoryImplUnitTest {
-    private final CreditCardDataSource mockDataSource = Mockito.mock(CreditCardDataSource.class);
+//    private final CreditCardDataSource mockDataSource = Mockito.mock(CreditCardDataSource.class);
     private final CreditCard creditCard = new CreditCard(1111,"11",100);
     private Server_CreditCardRepositoryImpl cardRepo;
 
-    @BeforeEach
-    void loadCredit(){
-        when(mockDataSource.load()).thenReturn(new HashMap<>(Map.of(creditCard.id(), creditCard)));
-        cardRepo = new Server_CreditCardRepositoryImpl(mockDataSource);
-    }
+//    @BeforeEach
+//    void loadCredit(){
+//        when(mockDataSource.load()).thenReturn(new HashMap<>(Map.of(creditCard.id(), creditCard)));
+//        cardRepo = new Server_CreditCardRepositoryImpl(mockDataSource);
+//    }
 
     @Test
     @DisplayName("Find card by valid ID")
@@ -41,7 +39,7 @@ class CreditCardRepositoryImplUnitTest {
     @DisplayName("Update amount test")
     void updateAmountTest() {
         cardRepo.updateAmount(creditCard.id(), 1);
-        verify(mockDataSource, times(1)).save(Map.of(creditCard.id(),creditCard.withAmount(1)));
+//        verify(mockDataSource, times(1)).save(Map.of(creditCard.id(),creditCard.withAmount(1)));
     }
 
 

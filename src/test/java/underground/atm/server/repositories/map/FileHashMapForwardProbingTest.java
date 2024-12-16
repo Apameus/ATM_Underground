@@ -6,13 +6,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import underground.atm.common.data.CreditCard;
-import underground.atm.server.codec.Codec;
 import underground.atm.server.codec.CreditCardCodec;
 import underground.atm.server.codec.IntegerCodec;
 import underground.atm.server.codec.StringCodec;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -61,6 +59,7 @@ class FileHashMapForwardProbingTest {
         fileHashMapForwardProbing.put(creditCardA.id(), creditCardB);
 
         assertThat(fileHashMapForwardProbing.get(creditCardA.id())).isEqualTo(creditCardB);
+        assertThat(fileHashMapForwardProbing.getMaxEntries()).isEqualTo(2);
     }
 
     @Test
@@ -164,48 +163,13 @@ class FileHashMapForwardProbingTest {
         var b1 = new ControlledHashObject(3,"B1");
         var a3 = new ControlledHashObject(1,"A3"); // should put to 0 index
 
-        conManager.put(a1, a1.key);
-        conManager.put(a2, a2.key);
-        conManager.put(b1, b1.key);
-        conManager.put(a3, a3.key);
+        conManager.put(a1, a1.key());
+        conManager.put(a2, a2.key());
+        conManager.put(b1, b1.key());
+        conManager.put(a3, a3.key());
 
-        assertThat(conManager.get(a3)).isEqualTo(a3.key);
+        assertThat(conManager.get(a3)).isEqualTo(a3.key());
 
-    }
-
-
-
-
-
-
-    record ControlledHashObject(int hashcode, String key){
-        @Override
-        public int hashCode() {
-            return hashcode;
-        }
-    }
-
-    record ControlledHashCodec(StringCodec stringCodec) implements Codec<ControlledHashObject> {
-        //hashCode -> KEY.
-        //KEY -> Value.
-
-        @Override
-        public int maxSize() {
-            return Integer.BYTES + stringCodec.maxSize();
-        }
-
-        @Override
-        public ControlledHashObject read(RandomAccessFile accessFile) throws IOException {
-            int hashcode = accessFile.readInt();
-            String read = stringCodec.read(accessFile);
-            return new ControlledHashObject(hashcode, read);
-        }
-
-        @Override
-        public void write(RandomAccessFile accessFile, ControlledHashObject obj) throws IOException {
-            accessFile.writeInt(obj.hashcode()); //hashCode -> KEY
-            stringCodec.write(accessFile, obj.key()); //KEY -> VALUE
-        }
     }
 
 }

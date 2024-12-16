@@ -8,35 +8,40 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FileHashMap_ForwardProbing<K, V> implements FileHashMap<K,V>{
-
-    private final RandomAccessFile accessFile;
+public final class FileHashMap_CloseAddressing<K, V> implements FileHashMap<K, V> {
+    private RandomAccessFile accessFile;
     private static final byte EXISTS_FLAG = 1;
+    private static final byte FLAG_SIZE = 1;
+    private static final byte NEXT_OFFSET_SIZE = 8;
+    private static final byte STORED_ENTRIES_SIZE = 4;
 
     private final int maxSizeOfEntry;
-    private int storedEntries; // Index 0-3 (fixed)
     private int maxEntries;
-
+    private int storedEntries;
     private final Codec<K> keyCodec;
+
     private final Codec<V> valueCodec;
 
-    FileHashMap_ForwardProbing(Path path, Codec<K> keyCodec, Codec<V> valueCodec, int maxEntries) throws IOException {
+    FileHashMap_CloseAddressing(Path path, Codec<K> keyCodec, Codec<V> valueCodec, int maxEntries) throws IOException {
         accessFile = new RandomAccessFile(path.toFile(), "rw");
         this.keyCodec = keyCodec;
         this.valueCodec = valueCodec;
 
-        maxSizeOfEntry = keyCodec.maxSize() + valueCodec.maxSize() + 1; // +1 for the flag
+        maxSizeOfEntry = keyCodec.maxSize() + valueCodec.maxSize() + FLAG_SIZE + NEXT_OFFSET_SIZE; // +1 for the flag +8 for the offset of next entry
         this.maxEntries = maxEntries;
-        if (accessFile.length() == 0) accessFile.setLength((long) maxEntries * maxSizeOfEntry + Integer.BYTES); // If the file is empty, we create new file (+4 for the storedEntries)
+        if (accessFile.length() == 0)
+            accessFile.setLength((long) maxEntries * maxSizeOfEntry + STORED_ENTRIES_SIZE); // If the file is empty, we create new file (+4 for the storedEntries)
         else { // Read the storedEntries that the file previously had
             accessFile.seek(0);
             storedEntries = accessFile.readInt();
             this.maxEntries = storedEntries * 2;
         }
     }
-    public FileHashMap_ForwardProbing(Path path, Codec<K> keyCodec, Codec<V> valueCodec) throws IOException {
-        this(path,keyCodec,valueCodec,16);
+
+    public FileHashMap_CloseAddressing(Path path, Codec<K> keyCodec, Codec<V> valueCodec) throws IOException {
+        this(path, keyCodec, valueCodec, 16);
     }
+
 
     @Override
     public void put(K key, V value) throws IOException {
@@ -44,18 +49,28 @@ public class FileHashMap_ForwardProbing<K, V> implements FileHashMap<K,V>{
         long offset = offset(key);
         accessFile.seek(offset);
         while (accessFile.readByte() == EXISTS_FLAG) {
-            if (offset >= accessFile.length() - Integer.BYTES) offset = 4; // Continue from the start (excluding storedEntries)
+            accessFile.seek(offset + FLAG_SIZE + NEXT_OFFSET_SIZE);
             if (keyCodec.read(accessFile).equals(key)) { // Override value
-                writeEntry(key, value, offset);
+                valueCodec.write(accessFile, value);
+//                writeEntry(key, value, offset);
                 return;
-//                break;
             }
-            offset += maxSizeOfEntry; // Collision: forward probing
+            accessFile.seek(offset + FLAG_SIZE);
+            var nextOffset = accessFile.readLong();
+            accessFile.seek(nextOffset);
+            if (accessFile.readByte() != EXISTS_FLAG || nextOffset == 0) { // Check if next entry exist
+                accessFile.seek(offset + FLAG_SIZE);
+                nextOffset = offset + maxSizeOfEntry; // TODO // WARNING
+                accessFile.writeLong(nextOffset); //TODO: // What offset should the collision entry take ?   !!!!!
+                //TODO // WARNING: if (nextOffset >= accessFile.length) { .. }
+            }
+            offset = nextOffset; // Collision: close addressing
+            accessFile.seek(nextOffset);
         }
         writeEntry(key, value, offset);
         storedEntries++;
 
-         // Update storedEntries
+        // Update storedEntries
         accessFile.seek(0);
         accessFile.writeInt((int) storedEntries);
     }
@@ -65,12 +80,12 @@ public class FileHashMap_ForwardProbing<K, V> implements FileHashMap<K,V>{
         long offset = offset(key);
         // Collision check
         for (int i = 0; i < storedEntries; i ++) {
-            if (offset >= accessFile.length() - Integer.BYTES) offset = 4; // Continue from the start (excluding storedEntries)
-            accessFile.seek(offset + 1);
-            if (keyCodec.read(accessFile).equals(key)) {
+            accessFile.seek(offset + FLAG_SIZE );
+            var nextOffset = accessFile.readLong();
+            if (keyCodec.read(accessFile).equals(key)) { //TODO: WARNING
                 return valueCodec.read(accessFile);
             }
-            offset += maxSizeOfEntry;
+            offset = nextOffset;
         }
         return null;
     }
@@ -80,26 +95,27 @@ public class FileHashMap_ForwardProbing<K, V> implements FileHashMap<K,V>{
         long offset = offset(key);
         // Collision check
         for (int i = 0; i < storedEntries; i ++) {
-            if (offset >= accessFile.length() - Integer.BYTES) offset = 4; // Continue from the start (excluding storedEntries)
-            accessFile.seek(offset + 1);
+            accessFile.seek(offset + FLAG_SIZE);
+            var nextOffset = accessFile.readLong();
             if (keyCodec.read(accessFile).equals(key)) {
                 accessFile.seek(offset);
                 accessFile.write(0); // 0 the flag
                 break;
             }
-            offset += maxSizeOfEntry;
+            offset = nextOffset;
         }
     }
 
     private void resize() throws IOException {
         long previousLength = accessFile.length();
         maxEntries *= 2;
-        long newLength = (long) maxEntries * maxSizeOfEntry + Integer.BYTES; // + 4 for the storedEntries
+        long newLength = (long) maxEntries * maxSizeOfEntry + STORED_ENTRIES_SIZE; // + 4 for the storedEntries
         accessFile.setLength(newLength);
         var hashMap = HashMap.<K,V>newHashMap((int) storedEntries);
         for (long offset = 4; offset < previousLength; offset += maxSizeOfEntry) { // Offset should start from Index 4 to avoid overriding storedEntries
             accessFile.seek(offset);
             accessFile.writeByte(0);
+            accessFile.writeLong(0);
             K key = keyCodec.read(accessFile);
             V value = valueCodec.read(accessFile);
             hashMap.put(key,value);
@@ -107,6 +123,7 @@ public class FileHashMap_ForwardProbing<K, V> implements FileHashMap<K,V>{
         for (long offset = previousLength; offset < newLength; offset += maxSizeOfEntry) { // Make sure that all the new flag indexes are 0
             accessFile.seek(offset);
             accessFile.write(0);
+            accessFile.writeLong(0);
         }
         storedEntries = 0;
         for (Map.Entry<K, V> entry : hashMap.entrySet()) {
@@ -114,25 +131,27 @@ public class FileHashMap_ForwardProbing<K, V> implements FileHashMap<K,V>{
         }
     }
 
+
     private long offset(K key) {
         long has = Math.abs(key.hashCode()) % maxEntries;
-        return has * maxSizeOfEntry + Integer.BYTES; // + 4 to exclude index 0-3 (storedEntries)
+        return has * maxSizeOfEntry + STORED_ENTRIES_SIZE; // + 4 to exclude index 0-3 (storedEntries)
     }
 
     private void writeEntry(K key, V value, long offset) throws IOException {
-        accessFile.seek(offset);
+        accessFile.seek(offset); // ignore nextOffset
         accessFile.writeByte(EXISTS_FLAG);
+//        accessFile.writeLong(0); //TODO: WARNING
+        accessFile.seek(offset + FLAG_SIZE + NEXT_OFFSET_SIZE);
         keyCodec.write(accessFile, key);
         valueCodec.write(accessFile, value);
     }
 
-    public int getMaxEntries(){
+
+    public int maxEntries() {
         return maxEntries;
     }
 
 
+
+
 }
-
-
-
-
