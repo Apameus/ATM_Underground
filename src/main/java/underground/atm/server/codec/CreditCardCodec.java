@@ -7,7 +7,7 @@ import java.io.RandomAccessFile;
 public record CreditCardCodec(StringCodec stringCodec) implements Codec<CreditCard> {
 
     @Override
-    public int maxSize() {
+    public int maxBytesSize() {
         return 25;
     } // 4 (ID) + 1 (PinLen) + 16 (maxPin) + 4 (Amount)
 

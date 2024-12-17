@@ -11,8 +11,8 @@ record ControlledHashCodec(StringCodec stringCodec) implements Codec<ControlledH
     //KEY -> Value.
 
     @Override
-    public int maxSize() {
-        return Integer.BYTES + stringCodec.maxSize();
+    public int maxBytesSize() {
+        return Integer.BYTES + stringCodec.maxBytesSize();
     }
 
     @Override

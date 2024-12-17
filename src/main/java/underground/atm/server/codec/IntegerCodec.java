@@ -6,7 +6,7 @@ import java.io.RandomAccessFile;
 public record IntegerCodec() implements Codec<Integer> {
 
     @Override
-    public int maxSize() {
+    public int maxBytesSize() {
         return 4;
     }
 

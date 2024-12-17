@@ -16,9 +16,9 @@ import java.nio.file.Path;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-class FileHashMapForwardProbingTest {
+class FileHashMap_ForwardProbingTest {
 
-    FileHashMap_ForwardProbing<Integer,CreditCard> fileHashMapForwardProbing;
+    FileHashMap_ForwardProbing<Integer,CreditCard> fileHashMap_ForwardProbing;
     Path file;
     IntegerCodec integerCodec = new IntegerCodec();
     CreditCardCodec creditCardCodec = new CreditCardCodec(new StringCodec(4));
@@ -26,7 +26,7 @@ class FileHashMapForwardProbingTest {
     @BeforeEach
     void initialize() throws IOException {
         file = Files.createTempFile("map", ".data");
-        fileHashMapForwardProbing = new FileHashMap_ForwardProbing<>(file, integerCodec,creditCardCodec,2);
+        fileHashMap_ForwardProbing = new FileHashMap_ForwardProbing<>(file, integerCodec,creditCardCodec,2);
     }
 
     @AfterEach
@@ -38,15 +38,15 @@ class FileHashMapForwardProbingTest {
     @DisplayName("Test simple put and get operation")
     void testSimplePutAndGetOperation() throws IOException {
         CreditCard creditCard = new CreditCard(2004, "0004", 100);
-        fileHashMapForwardProbing.put(creditCard.id(), creditCard);
+        fileHashMap_ForwardProbing.put(creditCard.id(), creditCard);
 
-        assertThat(fileHashMapForwardProbing.get(creditCard.id())).isEqualTo(creditCard);
+        assertThat(fileHashMap_ForwardProbing.get(creditCard.id())).isEqualTo(creditCard);
     }
 
     @Test
     @DisplayName("Get with key that doesn't exist should return null")
     void getWithKeyThatDoesNotExistShouldReturnNull() throws IOException {
-        assertThat(fileHashMapForwardProbing.get(0001)).isNull();
+        assertThat(fileHashMap_ForwardProbing.get(0001)).isNull();
     }
 
     @Test
@@ -55,11 +55,11 @@ class FileHashMapForwardProbingTest {
         CreditCard creditCardA = new CreditCard(2004, "0004", 100);
         CreditCard creditCardB = new CreditCard(2004, "5000", 5000);
 
-        fileHashMapForwardProbing.put(creditCardA.id(), creditCardA);
-        fileHashMapForwardProbing.put(creditCardA.id(), creditCardB);
+        fileHashMap_ForwardProbing.put(creditCardA.id(), creditCardA);
+        fileHashMap_ForwardProbing.put(creditCardA.id(), creditCardB);
 
-        assertThat(fileHashMapForwardProbing.get(creditCardA.id())).isEqualTo(creditCardB);
-        assertThat(fileHashMapForwardProbing.getMaxEntries()).isEqualTo(2);
+        assertThat(fileHashMap_ForwardProbing.get(creditCardA.id())).isEqualTo(creditCardB);
+        assertThat(fileHashMap_ForwardProbing.getMaxEntries()).isEqualTo(2);
     }
 
     @Test
@@ -81,28 +81,49 @@ class FileHashMapForwardProbingTest {
     }
 
     @Test
+    @DisplayName("Put and Get from collision where the object is placed in the beginning of the file")
+    void putAndGetFromCollisionWhereTheObjectIsPlacedInTheBeginningOfTheFile(@TempDir Path dir) throws IOException { //TODO
+        var keyAsValueCodec = new StringCodec(2);
+        var hashAsKeyCodec = new ControlledHashCodec(keyAsValueCodec);
+        var conManager = new FileHashMap_ForwardProbing<>(dir.resolve("map.data"),hashAsKeyCodec,keyAsValueCodec,4);
+
+        var a1 = new ControlledHashObject(1,"A1");
+        var a2 = new ControlledHashObject(1,"A2");
+        var b1 = new ControlledHashObject(3,"B1");
+        var a3 = new ControlledHashObject(1,"A3"); // should be placed to the first empty index of the file
+
+        conManager.put(a1, a1.key());
+        conManager.put(a2, a2.key());
+        conManager.put(b1, b1.key());
+        conManager.put(a3, a3.key());
+
+        assertThat(conManager.get(a3)).isEqualTo(a3.key());
+
+    }
+
+    @Test
     @DisplayName("Resize when put method is called to full file")
     void resizeWhenPutToFullFile() throws IOException { // initial size of maxEntries is set to 2
         CreditCard creditCardA = new CreditCard(1008, "0004", 100);
         CreditCard creditCardB = new CreditCard(2016, "5000", 5000);
         CreditCard creditCardC = new CreditCard(1008, "0004", 100);
 
-        fileHashMapForwardProbing.put(creditCardA.id(),creditCardA);
-        fileHashMapForwardProbing.put(creditCardB.id(),creditCardB);
+        fileHashMap_ForwardProbing.put(creditCardA.id(),creditCardA);
+        fileHashMap_ForwardProbing.put(creditCardB.id(),creditCardB);
 
-        assertDoesNotThrow(() -> fileHashMapForwardProbing.put(creditCardC.id(), creditCardC));
-        assertThat(fileHashMapForwardProbing.get(creditCardC.id())).isEqualTo(creditCardC);
-        assertThat(fileHashMapForwardProbing.getMaxEntries()).isEqualTo(4);
+        assertDoesNotThrow(() -> fileHashMap_ForwardProbing.put(creditCardC.id(), creditCardC));
+        assertThat(fileHashMap_ForwardProbing.get(creditCardC.id())).isEqualTo(creditCardC);
+        assertThat(fileHashMap_ForwardProbing.getMaxEntries()).isEqualTo(4);
     }
 
     @Test
     @DisplayName("Overload PUT and RESIZE methods tests")
     void overloadPutAndResizeMethodsTests() throws IOException {
         for (int i = 0; i < 500; i++) {
-            fileHashMapForwardProbing.put(i, new CreditCard(i, String.valueOf(i), i));
+            fileHashMap_ForwardProbing.put(i, new CreditCard(i, String.valueOf(i), i));
         }
         for (int i = 0; i < 500; i++) {
-            CreditCard creditCard = fileHashMapForwardProbing.get(i);
+            CreditCard creditCard = fileHashMap_ForwardProbing.get(i);
             assertThat(creditCard.id()).isEqualTo(i);
             assertThat(creditCard.pin()).isEqualTo(String.valueOf(i));
             assertThat(creditCard.amount()).isEqualTo(i);
@@ -127,48 +148,25 @@ class FileHashMapForwardProbingTest {
     }
 
     @Test
-    @DisplayName("gamiete o ioannis")
-    void gamieteOIoannis(@TempDir Path dir) throws IOException {
+    @DisplayName("Overload Put and Get Methods")
+    void overloadPutAndRemoveMethods(@TempDir Path dir) throws IOException {
         var keyAsValueCodec = new StringCodec(4);
         var hashAsKeyCodec = new ControlledHashCodec(keyAsValueCodec);
-        var cDynamicFileManager = new FileHashMap_ForwardProbing<>(dir.resolve("cDynamicFileManager.data"), hashAsKeyCodec, keyAsValueCodec);
+        var fileHashMap = new FileHashMap_ForwardProbing<>(dir.resolve("fileHashMap.data"), hashAsKeyCodec, keyAsValueCodec);
 
         for (int i = 0; i < 500; i++) { // Put 500 entries with collision
-            String stupidValue = String.valueOf(i);
-            var collisionKey = new ControlledHashObject(500, stupidValue);
-            System.out.println(i);
-            cDynamicFileManager.put(collisionKey, stupidValue);
+            var obj = new ControlledHashObject(500, String.valueOf(i));
+            fileHashMap.put(obj, obj.key());
         }
 
         var target = new ControlledHashObject(500, "A500"); // Put another entry with collision
-        cDynamicFileManager.put(target, "A500");
+        fileHashMap.put(target, "A500");
 
         for (int i = 0; i < 500; i++) { // Remove the first 500 collision entries
-            ControlledHashObject collisionKey = new ControlledHashObject(500, String.valueOf(i));
-            cDynamicFileManager.remove(collisionKey);
+            var obj = new ControlledHashObject(500, String.valueOf(i));
+            fileHashMap.remove(obj);
         }
-        // Find the last motherf*cker
-        assertThat(cDynamicFileManager.get(target)).isEqualTo("A500");
-    }
-
-    @Test
-    @DisplayName("Put and Get from collision where the object is placed in the beginning of the file")
-    void putAndGetFromCollisionWhereTheObjectIsPlacedInTheBeginningOfTheFile(@TempDir Path dir) throws IOException { //TODO
-        var keyAsValueCodec = new StringCodec(2);
-        var hashAsKeyCodec = new ControlledHashCodec(keyAsValueCodec);
-        var conManager = new FileHashMap_ForwardProbing<>(dir.resolve("map.data"),hashAsKeyCodec,keyAsValueCodec,4);
-
-        var a1 = new ControlledHashObject(1,"A1");
-        var a2 = new ControlledHashObject(1,"A2");
-        var b1 = new ControlledHashObject(3,"B1");
-        var a3 = new ControlledHashObject(1,"A3"); // should put to 0 index
-
-        conManager.put(a1, a1.key());
-        conManager.put(a2, a2.key());
-        conManager.put(b1, b1.key());
-        conManager.put(a3, a3.key());
-
-        assertThat(conManager.get(a3)).isEqualTo(a3.key());
+        assertThat(fileHashMap.get(target)).isEqualTo(target.key()); // Find the last entry
 
     }
 

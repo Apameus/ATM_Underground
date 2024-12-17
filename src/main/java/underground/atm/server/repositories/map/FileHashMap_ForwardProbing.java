@@ -25,7 +25,7 @@ public class FileHashMap_ForwardProbing<K, V> implements FileHashMap<K,V>{
         this.keyCodec = keyCodec;
         this.valueCodec = valueCodec;
 
-        maxSizeOfEntry = keyCodec.maxSize() + valueCodec.maxSize() + 1; // +1 for the flag
+        maxSizeOfEntry = keyCodec.maxBytesSize() + valueCodec.maxBytesSize() + 1; // +1 for the flag
         this.maxEntries = maxEntries;
         if (accessFile.length() == 0) accessFile.setLength((long) maxEntries * maxSizeOfEntry + Integer.BYTES); // If the file is empty, we create new file (+4 for the storedEntries)
         else { // Read the storedEntries that the file previously had
@@ -44,11 +44,13 @@ public class FileHashMap_ForwardProbing<K, V> implements FileHashMap<K,V>{
         long offset = offset(key);
         accessFile.seek(offset);
         while (accessFile.readByte() == EXISTS_FLAG) {
-            if (offset >= accessFile.length() - Integer.BYTES) offset = 4; // Continue from the start (excluding storedEntries)
+            if (offset >= accessFile.length() - Integer.BYTES) {
+                offset = 4; // Continue from the start (excluding storedEntries)
+                break;
+            }
             if (keyCodec.read(accessFile).equals(key)) { // Override value
                 writeEntry(key, value, offset);
                 return;
-//                break;
             }
             offset += maxSizeOfEntry; // Collision: forward probing
         }

@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public interface Codec<T> {
-    int maxSize();
+    int maxBytesSize();
 
     T read(RandomAccessFile accessFile) throws IOException;
 

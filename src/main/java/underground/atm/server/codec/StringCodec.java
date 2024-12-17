@@ -3,7 +3,12 @@ package underground.atm.server.codec;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-public record StringCodec(int maxSize) implements Codec<String> {
+public record StringCodec(int stringLength) implements Codec<String> {
+
+    @Override
+    public int maxBytesSize() {
+        return Integer.BYTES + stringLength;
+    }
 
     @Override
     public String read(RandomAccessFile accessFile) throws IOException {
